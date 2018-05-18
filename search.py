@@ -127,7 +127,7 @@ def breadthFirstSearch(problem):
     start_state = problem.getStartState()
     open_nodes.push((start_state, []))
 
-    seen_nodes = [start_state]
+    seen_nodes = []
 
     while not open_nodes.isEmpty():
 
@@ -136,11 +136,14 @@ def breadthFirstSearch(problem):
         if problem.isGoalState(cur_node[0]):
             return cur_node[1]
 
-        suc_nodes = problem.getSuccessors(cur_node[0])
+        if cur_node[0] not in seen_nodes:
 
-        for sun in suc_nodes:
-            if sun[0] not in seen_nodes:
-                seen_nodes.append(sun[0])
+            seen_nodes.append(cur_node[0])
+
+            suc_nodes = problem.getSuccessors(cur_node[0])
+
+            for sun in suc_nodes:
+
                 sn_action_path = cur_node[1] + [sun[1]]
                 open_nodes.push((sun[0], sn_action_path))
 
@@ -152,30 +155,27 @@ def uniformCostSearch(problem):
 
     start_state = problem.getStartState()
     open_nodes.push((start_state, [], 1), 1)
-    seen_nodes = [start_state]
 
-    x = False
-
-    if (start_state.__str__() == 'A'):
-        x = True
+    seen_nodes = []
 
     while not open_nodes.isEmpty():
-        if x:
-            print(seen_nodes)
 
         cur_node = open_nodes.pop()
 
         if problem.isGoalState(cur_node[0]):
+            return cur_node[1]
 
-            return list(cur_node[1])
+        if cur_node[0] not in seen_nodes:
 
-        suc_nodes = problem.getSuccessors(cur_node[0])
+            seen_nodes.append(cur_node[0])
 
-        for sun in suc_nodes:
-            if sun[0] not in seen_nodes:
-                seen_nodes.append(sun[0])
+            suc_nodes = problem.getSuccessors(cur_node[0])
+
+            for sun in suc_nodes:
+
                 sn_action_path = cur_node[1] + [sun[1]]
                 action_cost = cur_node[2] + sun[2]
+
                 open_nodes.push(
                     (sun[0], sn_action_path, action_cost), action_cost)
 

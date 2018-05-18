@@ -19,6 +19,8 @@ Pacman agents (in searchAgents.py).
 
 import util
 
+from game import Directions
+
 
 class SearchProblem:
     """
@@ -87,23 +89,31 @@ def depthFirstSearch(problem):
     print "Start:", problem.getStartState()
     print "Is the start a goal?", problem.isGoalState(problem.getStartState())
     print "Start's successors:", problem.getSuccessors(problem.getStartState())
+    (successor, action, stepCost)
     """
-    "*** YOUR CODE HERE ***"
-    start_state = problem.getStartState()
 
-    if problem.isGoalState(start_state):
-        return []
-
+    # each node is a tuple of the state, the actions to get there from the start state, and its ancestor states.
     open_nodes = util.Stack()
-    open_nodes.push(start_state)
+
+    start_state = problem.getStartState()
+    open_nodes.push((start_state, (), (start_state,)))
 
     while not open_nodes.isEmpty():
-        cur_node = open_nodes.pop()
-        suc_nodes = problem.getSuccessors(cur_node)
 
-        for n in suc_nodes:
-            if problem.isGoalState(n):
-                return []
+        cur_node = open_nodes.pop()
+
+        # print (cur_node)
+
+        if problem.isGoalState(cur_node[0]):
+            return cur_node[1]
+
+        suc_nodes = problem.getSuccessors(cur_node[0])
+
+        for sun in suc_nodes:
+            if sun[0] not in cur_node[2]:
+                sn_action_path = cur_node[1] + (sun[1],)
+                ancestor_nodes = cur_node[2] + (sun[0],)
+                open_nodes.push((sun[0], sn_action_path, ancestor_nodes))
 
 
 def breadthFirstSearch(problem):

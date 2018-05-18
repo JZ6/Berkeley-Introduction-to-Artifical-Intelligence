@@ -73,6 +73,8 @@ def tinyMazeSearch(problem):
     from game import Directions
     s = Directions.SOUTH
     w = Directions.WEST
+
+    print "Start's successors:", problem.getSuccessors(problem.getStartState())
     return [s, s, w, s, w, w, s, w]
 
 
@@ -96,7 +98,7 @@ def depthFirstSearch(problem):
     open_nodes = util.Stack()
 
     start_state = problem.getStartState()
-    open_nodes.push((start_state, (), (start_state,)))
+    open_nodes.push((start_state, [], [start_state]))
 
     while not open_nodes.isEmpty():
 
@@ -111,8 +113,8 @@ def depthFirstSearch(problem):
 
         for sun in suc_nodes:
             if sun[0] not in cur_node[2]:
-                sn_action_path = cur_node[1] + (sun[1],)
-                ancestor_nodes = cur_node[2] + (sun[0],)
+                sn_action_path = cur_node[1] + [sun[1]]
+                ancestor_nodes = cur_node[2] + [sun[0]]
                 open_nodes.push((sun[0], sn_action_path, ancestor_nodes))
 
 
@@ -123,15 +125,13 @@ def breadthFirstSearch(problem):
     open_nodes = util.Queue()
 
     start_state = problem.getStartState()
-    open_nodes.push((start_state, ()))
+    open_nodes.push((start_state, []))
 
     seen_nodes = [start_state]
 
     while not open_nodes.isEmpty():
 
         cur_node = open_nodes.pop()
-
-        # print (cur_node)
 
         if problem.isGoalState(cur_node[0]):
             return cur_node[1]
@@ -141,7 +141,7 @@ def breadthFirstSearch(problem):
         for sun in suc_nodes:
             if sun[0] not in seen_nodes:
                 seen_nodes.append(sun[0])
-                sn_action_path = cur_node[1] + (sun[1],)
+                sn_action_path = cur_node[1] + [sun[1]]
                 open_nodes.push((sun[0], sn_action_path))
 
 
@@ -151,27 +151,33 @@ def uniformCostSearch(problem):
     open_nodes = util.PriorityQueue()
 
     start_state = problem.getStartState()
-    open_nodes.push((start_state, ()), 1)
-
+    open_nodes.push((start_state, [], 1), 1)
     seen_nodes = [start_state]
 
+    x = False
+
+    if (start_state.__str__() == 'A'):
+        x = True
+
     while not open_nodes.isEmpty():
+        if x:
+            print(seen_nodes)
 
         cur_node = open_nodes.pop()
 
-        # print (cur_node)
-
         if problem.isGoalState(cur_node[0]):
-            return cur_node[1]
+
+            return list(cur_node[1])
 
         suc_nodes = problem.getSuccessors(cur_node[0])
 
         for sun in suc_nodes:
             if sun[0] not in seen_nodes:
                 seen_nodes.append(sun[0])
-                sn_action_path = cur_node[1] + (sun[1],)
-                open_nodes.push((sun[0], sn_action_path),
-                                problem.getCostOfActions(sn_action_path))
+                sn_action_path = cur_node[1] + [sun[1]]
+                action_cost = cur_node[2] + sun[2]
+                open_nodes.push(
+                    (sun[0], sn_action_path, action_cost), action_cost)
 
 
 def nullHeuristic(state, problem=None):

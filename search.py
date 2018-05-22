@@ -122,10 +122,9 @@ def breadthFirstSearch(problem):
     """Search the shallowest nodes in the search tree first."""
 
     # each node is a tuple of the state, the actions to get there from the start state.
-    open_nodes = util.Queue()
 
-    start_state = problem.getStartState()
-    open_nodes.push((start_state, []))
+    open_nodes = util.Queue()
+    open_nodes.push((problem.getStartState(), []))
 
     seen_nodes = []
 
@@ -151,10 +150,9 @@ def breadthFirstSearch(problem):
 def uniformCostSearch(problem):
     """Search the node of least total cost first."""
     # each node is a tuple of the state, the actions to get there from the start state, and its action cost.
-    open_nodes = util.PriorityQueue()
 
-    start_state = problem.getStartState()
-    open_nodes.push((start_state, [], 1), 1)
+    open_nodes = util.PriorityQueue()
+    open_nodes.push((problem.getStartState(), [], 1), 1)
 
     seen_nodes = []
 
@@ -191,12 +189,12 @@ def nullHeuristic(state, problem=None):
 def aStarSearch(problem, heuristic=nullHeuristic):
     """Search the node that has the lowest combined cost and heuristic first."""
     "*** YOUR CODE HERE ***"
-    # each node is a tuple of the state, the actions to get there from the start state, and its action cost.
-
-    open_nodes = util.PriorityQueue()
+    # each node is a tuple of the state, the actions to get there from the start state, and its action cost + h(n).
 
     start_state = problem.getStartState()
     init_cost = heuristic(start_state, problem)
+
+    open_nodes = util.PriorityQueue()
     open_nodes.push((start_state, [], init_cost), init_cost)
 
     seen_nodes = []
@@ -217,10 +215,10 @@ def aStarSearch(problem, heuristic=nullHeuristic):
             for sun in suc_nodes:
 
                 sn_action_path = cur_node[1] + [sun[1]]
-                action_cost = cur_node[2] + sun[2] + heuristic(sun[0], problem)
+                action_cost = cur_node[2] + sun[2]
 
                 open_nodes.push(
-                    (sun[0], sn_action_path, action_cost), action_cost)
+                    (sun[0], sn_action_path, action_cost), action_cost + heuristic(sun[0], problem))
 
 
 # Abbreviations

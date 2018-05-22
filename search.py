@@ -73,8 +73,6 @@ def tinyMazeSearch(problem):
     from game import Directions
     s = Directions.SOUTH
     w = Directions.WEST
-
-    print "Start's successors:", problem.getSuccessors(problem.getStartState())
     return [s, s, w, s, w, w, s, w]
 
 

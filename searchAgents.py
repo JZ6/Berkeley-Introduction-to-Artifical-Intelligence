@@ -530,28 +530,29 @@ def foodHeuristic(state, problem):
     if problem.isGoalState(state):
         return 0
 
+    # Find total distance between food!
+    #    p
+    # o1111o11o
+
+    # right : 1 + 3 + 8
+
+    # left : 2 + 5 + 3
+
+    # Find minium spanning tree!!!!!!!!
+
     while food_coords:
 
         food_distances = util.PriorityQueue()
 
-        for food in food_coords:
+    #     for food in food_coords:
+    #         fmd = util.manhattanDistance(cur_pos, food)
+    #         food_distances.push((food, fmd), fmd)
 
-            x1, y1 = cur_pos
-            x2, y2 = food
-            walls = problem.walls
-            assert not walls[x1][y1], 'point1 is a wall: ' + str(cur_pos)
-            assert not walls[x2][y2], 'point2 is a wall: ' + str(food)
-            prob = PositionSearchProblem(
-                problem.startingGameState, start=cur_pos, goal=food, warn=False, visualize=False)
-            fmd = len(search.bfs(prob))
+    #     closest_food = food_distances.pop()
 
-            food_distances.push((food, fmd), fmd)
-
-        closest_food = food_distances.pop()
-
-        cur_pos = closest_food[0]
-        food_coords.remove(closest_food[0])
-        result += closest_food[1]
+    #     cur_pos = closest_food[0]
+    #     food_coords.remove(closest_food[0])
+    #     result += closest_food[1]
 
     return result
 

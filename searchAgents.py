@@ -540,6 +540,10 @@ def foodHeuristic(state, problem):
 
     # Find minium spanning tree!!!!!!!!
 
+    # No, start at corner node.
+
+    # Euclidean minimum spanning tree
+
     while food_coords:
 
         food_distances = util.PriorityQueue()

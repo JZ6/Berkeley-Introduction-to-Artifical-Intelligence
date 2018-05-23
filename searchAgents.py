@@ -566,25 +566,41 @@ def foodHeuristic(state, problem):
 
                 edge = (food_node1, food_node2, maze_distance)
 
-                print(edge)
-
                 food_graph.push(edge, maze_distance)
 
+        if food_graph.isEmpty():
+            print('what')
+            return 0
+
         # Find the mst of the food graph.
-        mst_food = []
-        seen_edges = set()
+        start_edge = food_graph.pop()
+        mst_food = [start_edge]
+        seen_nodes = set([start_edge[0], start_edge[1]])
+        reinsert_edges = []
 
-        while food_graph and (len(mst_food) < total_food_num):
+        while not food_graph.isEmpty() and (len(mst_food) < total_food_num):
+
             cur_edge = food_graph.pop()
-
             cur_nodes = set([cur_edge[0], cur_edge[1]])
 
-            if(cur_nodes - seen_edges):
-                print(True)
+            node_diff = cur_nodes - seen_nodes
+
+            if(len(node_diff) == 1):
+                print(node_diff)
+
+                seen_nodes.update(node_diff)
 
                 mst_food.append(cur_edge)
 
-        problem.heuristicInfo['mst'] = food_graph
+                # Reinsert unused edges.
+                for edge in reinsert_edges:
+                    food_graph.push(edge, edge[2])
+
+            else:
+                reinsert_edges.append(cur_edge)
+
+        print(mst_food)
+        problem.heuristicInfo['mst'] = mst_food
 
     # while food_coords:
 

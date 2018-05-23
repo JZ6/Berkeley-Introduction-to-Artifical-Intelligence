@@ -552,25 +552,40 @@ def foodHeuristic(state, problem):
         print(mst)
 
         problem.heuristicInfo['mst'] = mst[0]
-        problem.heuristicInfo['heads'] = mst[1]
-        problem.heuristicInfo['tails'] = mst[2]
         problem.heuristicInfo['cost'] = mst[3]
-        problem.heuristicInfo['next_food_node'] = -1
+        mst[2].reverse()
+        problem.heuristicInfo['path'] = mst[1] + mst[2]
 
-    heads = problem.heuristicInfo['heads']
-    tails = problem.heuristicInfo['tails']
+        head = problem.heuristicInfo['path'][0]
+        tail = problem.heuristicInfo['path'][-1]
 
-    if problem.heuristicInfo['next_food_node'] == -1:
         distance_to_head = mazeDistance(
-            cur_pos, heads[0], problem.startingGameState)
+            cur_pos, head, problem.startingGameState)
         distance_to_tail = mazeDistance(
-            cur_pos, tails[0], problem.startingGameState)
+            cur_pos, tail, problem.startingGameState)
 
-        problem.heuristicInfo['next_food_node'] = heads[0] if (
-            distance_to_head < distance_to_tail) else tails[0]
+        # True == tail, false == head
+        closest_end = distance_to_head > distance_to_tail
+
+        if closest_end:
+            problem.heuristicInfo['path'].reverse()
+
+        # print(problem.heuristicInfo['path'])
+
+        problem.heuristicInfo['target'] = problem.heuristicInfo['path'].pop(0)
+
+    if not problem.heuristicInfo['path']:
+        return 0
+
+    if cur_pos == problem.heuristicInfo['target']:
+        problem.heuristicInfo['target'] = ()
+
+    # No target food node
+    if not problem.heuristicInfo['target']:
+        problem.heuristicInfo['target'] = problem.heuristicInfo['path'].pop(0)
 
     result = mazeDistance(
-        cur_pos, problem.heuristicInfo['next_food_node'], problem.startingGameState)
+        cur_pos, problem.heuristicInfo['target'], problem.startingGameState)
 
     return result
 

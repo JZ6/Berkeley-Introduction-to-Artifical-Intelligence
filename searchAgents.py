@@ -544,9 +544,51 @@ def foodHeuristic(state, problem):
 
     # Euclidean minimum spanning tree
 
-    while food_coords:
+    # Create graph based on food coords.
 
-        food_distances = util.PriorityQueue()
+    # maybe only need to find the cloest node to pacman, then closest node to that
+
+    if 'mst' not in problem.heuristicInfo:
+
+        # Create graph of distance from every food node to every other.
+        food_graph = util.PriorityQueue()
+
+        total_food_num = len(food_coords)
+
+        for fc1 in range(total_food_num):
+            for fc2 in range(fc1 + 1, total_food_num):
+
+                food_node1 = food_coords[fc1]
+                food_node2 = food_coords[fc2]
+
+                maze_distance = mazeDistance(
+                    food_node1, food_node2, problem.startingGameState)
+
+                edge = (food_node1, food_node2, maze_distance)
+
+                print(edge)
+
+                food_graph.push(edge, maze_distance)
+
+        # Find the mst of the food graph.
+        mst_food = []
+        seen_edges = set()
+
+        while food_graph and (len(mst_food) < total_food_num):
+            cur_edge = food_graph.pop()
+
+            cur_nodes = set([cur_edge[0], cur_edge[1]])
+
+            if(cur_nodes - seen_edges):
+                print(True)
+
+                mst_food.append(cur_edge)
+
+        problem.heuristicInfo['mst'] = food_graph
+
+    # while food_coords:
+
+    #     food_distances = util.PriorityQueue()
 
     #     for food in food_coords:
     #         fmd = util.manhattanDistance(cur_pos, food)

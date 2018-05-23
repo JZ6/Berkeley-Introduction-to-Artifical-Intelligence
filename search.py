@@ -124,7 +124,7 @@ def breadthFirstSearch(problem):
     open_nodes = util.Queue()
     open_nodes.push((problem.getStartState(), []))
 
-    seen_nodes = []
+    seen_nodes = set()
 
     while not open_nodes.isEmpty():
 
@@ -135,7 +135,7 @@ def breadthFirstSearch(problem):
 
         if cur_node[0] not in seen_nodes:
 
-            seen_nodes.append(cur_node[0])
+            seen_nodes.add(cur_node[0])
 
             suc_nodes = problem.getSuccessors(cur_node[0])
 
@@ -152,7 +152,7 @@ def uniformCostSearch(problem):
     open_nodes = util.PriorityQueue()
     open_nodes.push((problem.getStartState(), [], 1), 1)
 
-    seen_nodes = []
+    seen_nodes = set()
 
     while not open_nodes.isEmpty():
 
@@ -163,7 +163,7 @@ def uniformCostSearch(problem):
 
         if cur_node[0] not in seen_nodes:
 
-            seen_nodes.append(cur_node[0])
+            seen_nodes.add(cur_node[0])
 
             suc_nodes = problem.getSuccessors(cur_node[0])
 
@@ -195,7 +195,7 @@ def aStarSearch(problem, heuristic=nullHeuristic):
     open_nodes = util.PriorityQueue()
     open_nodes.push((start_state, [], init_cost), init_cost)
 
-    seen_nodes = []
+    seen_nodes = set()
 
     while not open_nodes.isEmpty():
 
@@ -206,7 +206,7 @@ def aStarSearch(problem, heuristic=nullHeuristic):
 
         if cur_node[0] not in seen_nodes:
 
-            seen_nodes.append(cur_node[0])
+            seen_nodes.add(cur_node[0])
 
             suc_nodes = problem.getSuccessors(cur_node[0])
 

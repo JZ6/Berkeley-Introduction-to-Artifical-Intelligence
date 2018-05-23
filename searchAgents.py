@@ -525,6 +525,8 @@ def foodHeuristic(state, problem):
     """
     result = 0
     cur_pos, foodGrid = state
+
+    # Assume coords are unique
     food_coords = foodGrid.asList()
 
     if problem.isGoalState(state):
@@ -550,64 +552,23 @@ def foodHeuristic(state, problem):
 
     if 'mst' not in problem.heuristicInfo:
 
-        # Create graph of distance from every food node to every other.
-        food_graph = util.PriorityQueue()
-
         total_food_num = len(food_coords)
 
-        for fc1 in range(total_food_num):
-            for fc2 in range(fc1 + 1, total_food_num):
-
-                food_node1 = food_coords[fc1]
-                food_node2 = food_coords[fc2]
-
-                maze_distance = mazeDistance(
-                    food_node1, food_node2, problem.startingGameState)
-
-                edge = (food_node1, food_node2, maze_distance)
-
-                food_graph.push(edge, maze_distance)
+        food_graph = CreateFoodGraph(food_coords, total_food_num, problem)
 
         if food_graph.isEmpty():
             problem.heuristicInfo['mst'] = None
             print('No path to food')
             return 0
 
-        # Find the mst of the food graph.
-        start_edge = food_graph.pop()
-        mst_food = [start_edge]
-        seen_nodes = {start_edge[0]: 1, start_edge[1]: 1}
-        reinsert_edges = []
+        # Find the one way mst of the food graph.
+        problem.heuristicInfo['mst'] = ObtainDirectedMST(
+            food_graph, total_food_num)
+        print(problem.heuristicInfo['mst'])
 
-        while not food_graph.isEmpty() and (len(mst_food) < total_food_num):
-
-            cur_edge = food_graph.pop()
-            cur_nodes = set([cur_edge[0], cur_edge[1]])
-
-            node_diff = cur_nodes - set(seen_nodes.keys())
-
-            if(len(node_diff) == 1):
-                print(node_diff)
-
-                for node in cur_nodes:
-                    if node in seen_nodes:
-                        seen_nodes[node] += 1
-                    else:
-                        seen_nodes[node] = 1
-
-                mst_food.append(cur_edge)
-
-                # Reinsert unused edges.
-                for edge in reinsert_edges:
-                    food_graph.push(edge, edge[2])
-
-            else:
-                reinsert_edges.append(cur_edge)
-
-        print(mst_food)
-        problem.heuristicInfo['mst'] = mst_food
-
-        print(seen_nodes)
+    mst = problem.heuristicInfo['mst'][0]
+    head = problem.heuristicInfo['mst'][1]
+    tail = problem.heuristicInfo['mst'][2]
 
     # while food_coords:
 
@@ -624,6 +585,87 @@ def foodHeuristic(state, problem):
     #     result += closest_food[1]
 
     return result
+
+
+def CreateFoodGraph(food_coords, total_food_num, problem):
+    # Create graph of distance from every food node to every other.
+    food_graph = util.PriorityQueue()
+
+    for fc1 in range(total_food_num):
+        for fc2 in range(fc1 + 1, total_food_num):
+
+            food_node1 = food_coords[fc1]
+            food_node2 = food_coords[fc2]
+
+            maze_distance = mazeDistance(
+                food_node1, food_node2, problem.startingGameState)
+
+            edge = (food_node1, food_node2, maze_distance)
+
+            food_graph.push(edge, maze_distance)
+
+    return food_graph
+
+
+def ObtainDirectedMST(food_graph, total_food_num):
+
+    start_edge = food_graph.pop()
+    # print(start_edge)
+    # print("s")
+    mst_food = [start_edge]
+
+    head = start_edge[0]
+    tail = start_edge[1]
+
+    seen_nodes = {head: 1, tail: 1}
+    reinsert_edges = []
+
+    while not food_graph.isEmpty() and (len(mst_food) + 1 < total_food_num):
+
+        cur_edge = food_graph.pop()
+        cur_nodes = set([cur_edge[0], cur_edge[1]])
+        node_diff = cur_nodes - set(seen_nodes.keys())
+
+        if ((head in cur_edge) ^ (tail in cur_edge)) and len(node_diff) == 1:
+
+            if head == cur_edge[0]:
+                head = cur_edge[1]
+
+            elif head == cur_edge[1]:
+                head = cur_edge[0]
+
+            elif tail == cur_edge[1]:
+                tail = cur_edge[0]
+
+            elif tail == cur_edge[0]:
+                tail = cur_edge[1]
+
+            # print("c")
+            # print(cur_edge)
+            # print("h")
+            # print(head)
+            # print("t")
+            # print(tail)
+
+            mst_food.append(cur_edge)
+
+            for edge in reinsert_edges:
+                food_graph.push(edge, edge[2])
+            reinsert_edges = []
+
+            for node in cur_edge:
+                if node in seen_nodes:
+                    seen_nodes[node] += 1
+                else:
+                    seen_nodes[node] = 1
+
+        # Reinsert unused edges.
+        else:
+            reinsert_edges.append(cur_edge)
+
+    # print(mst_food)
+    # print(seen_nodes)
+    return (mst_food, head, tail)
 
 
 class ClosestDotSearchAgent(SearchAgent):

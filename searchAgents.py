@@ -532,23 +532,8 @@ def foodHeuristic(state, problem):
     if problem.isGoalState(state):
         return 0
 
-    # Find total distance between food!
-    #    p
-    # o1111o11o
-
-    # right : 1 + 3 + 8
-
-    # left : 2 + 5 + 3
-
-    # Find minium spanning tree!!!!!!!!
-
-    # No, start at corner node.
-
-    # Euclidean minimum spanning tree
-
-    # Create graph based on food coords.
-
-    # maybe only need to find the cloest node to pacman, then closest node to that
+    if len(food_coords) == 1:
+        return mazeDistance(cur_pos, food_coords[0], problem.startingGameState)
 
     if 'mst' not in problem.heuristicInfo:
 
@@ -558,31 +543,34 @@ def foodHeuristic(state, problem):
 
         if food_graph.isEmpty():
             problem.heuristicInfo['mst'] = None
-            print('No path to food')
+            # print('No path to food')
             return 0
 
         # Find the one way mst of the food graph.
-        problem.heuristicInfo['mst'] = ObtainDirectedMST(
+        mst = ObtainDirectedMST(
             food_graph, total_food_num)
-        print(problem.heuristicInfo['mst'])
+        print(mst)
 
-    mst = problem.heuristicInfo['mst'][0]
-    head = problem.heuristicInfo['mst'][1]
-    tail = problem.heuristicInfo['mst'][2]
+        problem.heuristicInfo['mst'] = mst[0]
+        problem.heuristicInfo['heads'] = mst[1]
+        problem.heuristicInfo['tails'] = mst[2]
+        problem.heuristicInfo['cost'] = mst[3]
+        problem.heuristicInfo['next_food_node'] = -1
 
-    # while food_coords:
+    heads = problem.heuristicInfo['heads']
+    tails = problem.heuristicInfo['tails']
 
-    #     food_distances = util.PriorityQueue()
+    if problem.heuristicInfo['next_food_node'] == -1:
+        distance_to_head = mazeDistance(
+            cur_pos, heads[0], problem.startingGameState)
+        distance_to_tail = mazeDistance(
+            cur_pos, tails[0], problem.startingGameState)
 
-    #     for food in food_coords:
-    #         fmd = util.manhattanDistance(cur_pos, food)
-    #         food_distances.push((food, fmd), fmd)
+        problem.heuristicInfo['next_food_node'] = heads[0] if (
+            distance_to_head < distance_to_tail) else tails[0]
 
-    #     closest_food = food_distances.pop()
-
-    #     cur_pos = closest_food[0]
-    #     food_coords.remove(closest_food[0])
-    #     result += closest_food[1]
+    result = mazeDistance(
+        cur_pos, problem.heuristicInfo['next_food_node'], problem.startingGameState)
 
     return result
 
@@ -614,10 +602,11 @@ def ObtainDirectedMST(food_graph, total_food_num):
     # print("s")
     mst_food = [start_edge]
 
-    head = start_edge[0]
-    tail = start_edge[1]
+    heads = [start_edge[0]]
+    tails = [start_edge[1]]
+    cost = start_edge[2]
 
-    seen_nodes = {head: 1, tail: 1}
+    seen_nodes = {heads[0]: 1, tails[0]: 1}
     reinsert_edges = []
 
     while not food_graph.isEmpty() and (len(mst_food) + 1 < total_food_num):
@@ -626,19 +615,19 @@ def ObtainDirectedMST(food_graph, total_food_num):
         cur_nodes = set([cur_edge[0], cur_edge[1]])
         node_diff = cur_nodes - set(seen_nodes.keys())
 
-        if ((head in cur_edge) ^ (tail in cur_edge)) and len(node_diff) == 1:
+        if ((heads[0] in cur_edge) ^ (tails[0] in cur_edge)) and len(node_diff) == 1:
 
-            if head == cur_edge[0]:
-                head = cur_edge[1]
+            if heads[0] == cur_edge[0]:
+                heads.insert(0, cur_edge[1])
 
-            elif head == cur_edge[1]:
-                head = cur_edge[0]
+            elif heads[0] == cur_edge[1]:
+                heads.insert(0, cur_edge[0])
 
-            elif tail == cur_edge[1]:
-                tail = cur_edge[0]
+            elif tails[0] == cur_edge[1]:
+                tails.insert(0, cur_edge[0])
 
-            elif tail == cur_edge[0]:
-                tail = cur_edge[1]
+            elif tails[0] == cur_edge[0]:
+                tails.insert(0, cur_edge[1])
 
             # print("c")
             # print(cur_edge)
@@ -646,6 +635,8 @@ def ObtainDirectedMST(food_graph, total_food_num):
             # print(head)
             # print("t")
             # print(tail)
+
+            cost += cur_edge[2]
 
             mst_food.append(cur_edge)
 
@@ -665,7 +656,8 @@ def ObtainDirectedMST(food_graph, total_food_num):
 
     # print(mst_food)
     # print(seen_nodes)
-    return (mst_food, head, tail)
+
+    return (mst_food, heads, tails, cost)
 
 
 class ClosestDotSearchAgent(SearchAgent):

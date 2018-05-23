@@ -549,11 +549,14 @@ def foodHeuristic(state, problem):
         # Find the one way mst of the food graph.
         mst = ObtainDirectedMST(
             food_graph, total_food_num)
-        print(mst)
+
+        # print(mst)
 
         problem.heuristicInfo['mst'] = mst[0]
         problem.heuristicInfo['cost'] = mst[3]
         mst[2].reverse()
+        print(mst[1])
+        print(mst[2])
         problem.heuristicInfo['path'] = mst[1] + mst[2]
 
         head = problem.heuristicInfo['path'][0]
@@ -575,10 +578,14 @@ def foodHeuristic(state, problem):
         problem.heuristicInfo['target'] = problem.heuristicInfo['path'].pop(0)
 
     if not problem.heuristicInfo['path']:
-        return 0
+        if problem.heuristicInfo['target']:
+            return mazeDistance(cur_pos, food_coords[0], problem.startingGameState)
+        else:
+            return 0
 
     if cur_pos == problem.heuristicInfo['target']:
         problem.heuristicInfo['target'] = ()
+        print(cur_pos)
 
     # No target food node
     if not problem.heuristicInfo['target']:

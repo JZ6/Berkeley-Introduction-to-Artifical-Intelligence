@@ -627,8 +627,7 @@ def ObtainDirectedMST(food_graph, total_food_num):
 
     heads = [start_edge[0]]
     tails = [start_edge[1]]
-    cost = start_edge[2]
-    print(start_edge)
+    path = [start_edge[0], start_edge[1]]
 
     seen_nodes = {heads[0]: 1, tails[0]: 1}
     reinsert_edges = []
@@ -641,27 +640,16 @@ def ObtainDirectedMST(food_graph, total_food_num):
 
         if ((heads[0] in cur_edge) ^ (tails[0] in cur_edge)) and len(node_diff) == 1:
 
-            if heads[0] == cur_edge[0]:
-                heads.insert(0, cur_edge[1])
+            next_node = node_diff.pop()
 
-            elif heads[0] == cur_edge[1]:
-                heads.insert(0, cur_edge[0])
+            if(heads[0] in cur_edge):
+                heads.insert(0, next_node)
+            elif (tails[-1] in cur_edge):
 
-            elif tails[0] == cur_edge[1]:
-                tails.insert(0, cur_edge[0])
+                if tails[-1] == cur_edge[0]:
+                    path.extend(DirToCoords(tails[-1], cur_edge[2]))
 
-            elif tails[0] == cur_edge[0]:
-                tails.insert(0, cur_edge[1])
-
-            # print("c")
-            # print(cur_edge)
-            # print("h")
-            # print(head)
-            # print("t")
-            # print(tail)
-
-            cost += cur_edge[2]
-            print(cur_edge)
+                tails.append(next_node)
 
             mst_food.append(cur_edge)
 
@@ -682,13 +670,41 @@ def ObtainDirectedMST(food_graph, total_food_num):
     # print(mst_food)
     # print(seen_nodes)
 
-    tails.reverse()
-
     food_order = heads + tails
 
-    print(food_order)
+    # print(food_order)
+    print(mst_food)
+    print(path)
 
-    return (mst_food, food_order, cost)
+    return (mst_food, food_order, path)
+
+
+def DirToCoords(origin_coord, dirs):
+    result = []
+    cur_coords = list(origin_coord)
+
+    for dir in dirs:
+        if dir == 'North':
+            cur_coords[1] += 1
+
+        elif dir == 'South':
+            cur_coords[1] -= 1
+
+        elif dir == 'East':
+            cur_coords[0] += 1
+
+        elif dir == 'West':
+            cur_coords[0] -= 1
+
+        else:
+            continue
+
+        result.append(tuple(cur_coords))
+
+    return result
+
+
+print DirToCoords((0, 0), ['North', "West",  'South', 'East'])
 
 
 class ClosestDotSearchAgent(SearchAgent):

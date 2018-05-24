@@ -643,7 +643,18 @@ def ObtainDirectedMST(food_graph, total_food_num):
             next_node = node_diff.pop()
 
             if(heads[0] in cur_edge):
+
+                if heads[0] == cur_edge[0]:
+                    next_coords = DirToCoords(heads[0], cur_edge[2])
+                    next_coords.reverse()
+                    path = next_coords + path
+                elif heads[0] == cur_edge[1]:
+                    next_coords = RevDirToCoords(heads[0], cur_edge[2])
+                    next_coords.reverse()
+                    path = next_coords + path
+
                 heads.insert(0, next_node)
+
             elif (tails[-1] in cur_edge):
 
                 if tails[-1] == cur_edge[0]:
@@ -667,21 +678,40 @@ def ObtainDirectedMST(food_graph, total_food_num):
         else:
             reinsert_edges.append(cur_edge)
 
-    # print(mst_food)
     # print(seen_nodes)
 
     food_order = heads + tails
 
-    # print(food_order)
+    print(food_order)
     print(mst_food)
     print(path)
 
     return (mst_food, food_order, path)
 
 
+def RevDirToCoords(origin_coord, dirs):
+    result = []
+    for dir in dirs:
+        if dir == 'North':
+            result.append('South')
+
+        elif dir == 'South':
+            result.append('North')
+
+        elif dir == 'East':
+            result.append('West')
+
+        elif dir == 'West':
+            result.append('East')
+
+    return DirToCoords(origin_coord, result)
+
+
 def DirToCoords(origin_coord, dirs):
     result = []
     cur_coords = list(origin_coord)
+
+    print(origin_coord, dirs)
 
     for dir in dirs:
         if dir == 'North':
@@ -704,7 +734,7 @@ def DirToCoords(origin_coord, dirs):
     return result
 
 
-print DirToCoords((0, 0), ['North', "West",  'South', 'East'])
+# print DirToCoords((0, 0), ['North', "West",  'South', 'East'])
 
 
 class ClosestDotSearchAgent(SearchAgent):

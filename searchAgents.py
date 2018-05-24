@@ -555,8 +555,8 @@ def foodHeuristic(state, problem):
         problem.heuristicInfo['mst'] = mst[0]
         problem.heuristicInfo['cost'] = mst[3]
         mst[2].reverse()
-        print(mst[1])
-        print(mst[2])
+        # print(mst[1])
+        # print(mst[2])
         problem.heuristicInfo['path'] = mst[1] + mst[2]
 
         head = problem.heuristicInfo['path'][0]
@@ -585,7 +585,7 @@ def foodHeuristic(state, problem):
 
     if cur_pos == problem.heuristicInfo['target']:
         problem.heuristicInfo['target'] = ()
-        print(cur_pos)
+        # print(cur_pos)
 
     # No target food node
     if not problem.heuristicInfo['target']:
@@ -602,18 +602,26 @@ def CreateFoodGraph(food_coords, total_food_num, problem):
     food_graph = util.PriorityQueue()
 
     for fc1 in range(total_food_num):
+
+        min_dis = float('inf')
         for fc2 in range(fc1 + 1, total_food_num):
 
             food_node1 = food_coords[fc1]
             food_node2 = food_coords[fc2]
 
-            maze_distance = mazeDistance(
-                food_node1, food_node2, problem.startingGameState)
+            if util.manhattanDistance(food_node1, food_node2) < min_dis:
 
-            edge = (food_node1, food_node2, maze_distance)
+                maze_distance = mazeDistance(
+                    food_node1, food_node2, problem.startingGameState)
 
-            food_graph.push(edge, maze_distance)
+                edge = (food_node1, food_node2, maze_distance)
 
+                if maze_distance < min_dis:
+                    min_dis = maze_distance
+
+                food_graph.push(edge, maze_distance)
+
+    print(food_graph.count)
     return food_graph
 
 
@@ -770,4 +778,4 @@ def mazeDistance(point1, point2, gameState):
     assert not walls[x2][y2], 'point2 is a wall: ' + str(point2)
     prob = PositionSearchProblem(
         gameState, start=point1, goal=point2, warn=False, visualize=False)
-    return len(search.bfs(prob))
+    return len(search.astar(prob, manhattanHeuristic))

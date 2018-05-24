@@ -532,6 +532,10 @@ def foodHeuristic(state, problem):
     if problem.isGoalState(state):
         return 0
 
+    # Important
+    if len(food_coords) == 1:
+        return mazeDistance(cur_pos, food_coords[0], problem.startingGameState)
+
     if 'mst' not in problem.heuristicInfo:
 
         total_food_num = len(food_coords)
@@ -579,14 +583,11 @@ def foodHeuristic(state, problem):
 
     if cur_pos == problem.heuristicInfo['target']:
         problem.heuristicInfo['target'] = ()
-        print(cur_pos)
+        # print(cur_pos)
 
     # No target food node
     if not problem.heuristicInfo['target']:
         problem.heuristicInfo['target'] = problem.heuristicInfo['path'].pop(0)
-
-    if len(food_coords) == 0:
-        return mazeDistance(cur_pos, food_coords[0], problem.startingGameState)
 
     result = mazeDistance(
         cur_pos, problem.heuristicInfo['target'], problem.startingGameState)
@@ -600,24 +601,18 @@ def CreateFoodGraph(food_coords, total_food_num, problem):
 
     for fc1 in range(total_food_num):
 
-        min_dis = float('inf')
-
         for fc2 in range(fc1 + 1, total_food_num):
 
             food_node1 = food_coords[fc1]
             food_node2 = food_coords[fc2]
 
-            if util.manhattanDistance(food_node1, food_node2) < min_dis:
+            maze_path = mazePath(food_node1, food_node2,
+                                 problem.startingGameState)
+            maze_distance = len(maze_path)
 
-                maze_distance = mazeDistance(
-                    food_node1, food_node2, problem.startingGameState)
+            edge = (food_node1, food_node2, maze_path)
 
-                edge = (food_node1, food_node2, maze_distance)
-
-                if maze_distance < min_dis:
-                    min_dis = maze_distance
-
-                food_graph.push(edge, maze_distance)
+            food_graph.push(edge, maze_distance)
 
     # print(food_graph.count)
     return food_graph
@@ -633,6 +628,7 @@ def ObtainDirectedMST(food_graph, total_food_num):
     heads = [start_edge[0]]
     tails = [start_edge[1]]
     cost = start_edge[2]
+    print(start_edge)
 
     seen_nodes = {heads[0]: 1, tails[0]: 1}
     reinsert_edges = []
@@ -665,14 +661,15 @@ def ObtainDirectedMST(food_graph, total_food_num):
             # print(tail)
 
             cost += cur_edge[2]
+            print(cur_edge)
 
             mst_food.append(cur_edge)
 
             for edge in reinsert_edges:
-                food_graph.push(edge, edge[2])
+                food_graph.push(edge, len(edge[2]))
             reinsert_edges = []
 
-            for node in cur_edge:
+            for node in cur_nodes:
                 if node in seen_nodes:
                     seen_nodes[node] += 1
                 else:

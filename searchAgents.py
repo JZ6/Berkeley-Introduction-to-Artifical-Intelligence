@@ -532,9 +532,6 @@ def foodHeuristic(state, problem):
     if problem.isGoalState(state):
         return 0
 
-    if len(food_coords) == 1:
-        return mazeDistance(cur_pos, food_coords[0], problem.startingGameState)
-
     if 'mst' not in problem.heuristicInfo:
 
         total_food_num = len(food_coords)
@@ -553,11 +550,8 @@ def foodHeuristic(state, problem):
         # print(mst)
 
         problem.heuristicInfo['mst'] = mst[0]
-        problem.heuristicInfo['cost'] = mst[3]
-        mst[2].reverse()
-        # print(mst[1])
-        # print(mst[2])
-        problem.heuristicInfo['path'] = mst[1] + mst[2]
+        problem.heuristicInfo['path'] = mst[1]
+        problem.heuristicInfo['cost'] = mst[2]
 
         head = problem.heuristicInfo['path'][0]
         tail = problem.heuristicInfo['path'][-1]
@@ -585,11 +579,14 @@ def foodHeuristic(state, problem):
 
     if cur_pos == problem.heuristicInfo['target']:
         problem.heuristicInfo['target'] = ()
-        # print(cur_pos)
+        print(cur_pos)
 
     # No target food node
     if not problem.heuristicInfo['target']:
         problem.heuristicInfo['target'] = problem.heuristicInfo['path'].pop(0)
+
+    if len(food_coords) == 0:
+        return mazeDistance(cur_pos, food_coords[0], problem.startingGameState)
 
     result = mazeDistance(
         cur_pos, problem.heuristicInfo['target'], problem.startingGameState)
@@ -604,6 +601,7 @@ def CreateFoodGraph(food_coords, total_food_num, problem):
     for fc1 in range(total_food_num):
 
         min_dis = float('inf')
+
         for fc2 in range(fc1 + 1, total_food_num):
 
             food_node1 = food_coords[fc1]
@@ -621,7 +619,7 @@ def CreateFoodGraph(food_coords, total_food_num, problem):
 
                 food_graph.push(edge, maze_distance)
 
-    print(food_graph.count)
+    # print(food_graph.count)
     return food_graph
 
 
@@ -687,7 +685,13 @@ def ObtainDirectedMST(food_graph, total_food_num):
     # print(mst_food)
     # print(seen_nodes)
 
-    return (mst_food, heads, tails, cost)
+    tails.reverse()
+
+    food_order = heads + tails
+
+    print(food_order)
+
+    return (mst_food, food_order, cost)
 
 
 class ClosestDotSearchAgent(SearchAgent):
@@ -779,3 +783,14 @@ def mazeDistance(point1, point2, gameState):
     prob = PositionSearchProblem(
         gameState, start=point1, goal=point2, warn=False, visualize=False)
     return len(search.astar(prob, manhattanHeuristic))
+
+
+def mazePath(point1, point2, gameState):
+    x1, y1 = point1
+    x2, y2 = point2
+    walls = gameState.getWalls()
+    assert not walls[x1][y1], 'point1 is a wall: ' + str(point1)
+    assert not walls[x2][y2], 'point2 is a wall: ' + str(point2)
+    prob = PositionSearchProblem(
+        gameState, start=point1, goal=point2, warn=False, visualize=False)
+    return search.astar(prob, manhattanHeuristic)

@@ -584,8 +584,8 @@ def foodHeuristic(state_copy, problem_copy):
         else:
             problem_copy.heuristicInfo['path'] = ph + \
                 problem_copy.heuristicInfo['path']
-        # print('path')
-        print(problem_copy.heuristicInfo['path'])
+        # # print('path')
+        # print(problem_copy.heuristicInfo['path'])
 
         problem_copy.heuristicInfo['target'] = problem_copy.heuristicInfo['path'].pop(
             0)

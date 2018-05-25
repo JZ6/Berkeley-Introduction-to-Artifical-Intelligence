@@ -190,14 +190,18 @@ def aStarSearch(problem, heuristic=nullHeuristic):
     # each node is a tuple of the state, the actions to get there from the start state, and its action cost + h(n).
 
     start_state = problem.getStartState()
-    init_cost = heuristic(start_state, problem)
 
     open_nodes = util.PriorityQueue()
+    # print(start_state)
+
+    init_cost = heuristic(start_state, problem)
+
     open_nodes.push((start_state, [], init_cost), init_cost)
 
     seen_nodes = set()
 
     while not open_nodes.isEmpty():
+        # print(open_nodes.count)
 
         cur_node = open_nodes.pop()
 
@@ -207,16 +211,25 @@ def aStarSearch(problem, heuristic=nullHeuristic):
         if cur_node[0] not in seen_nodes:
 
             seen_nodes.add(cur_node[0])
-
+            # print('cur_node')
+            # print(cur_node)
             suc_nodes = problem.getSuccessors(cur_node[0])
 
+            # print('suc_nodes')
+            # print(suc_nodes)
+
             for sun in suc_nodes:
+                # print('sun')
+                # print(sun[0])
 
                 sn_action_path = cur_node[1] + [sun[1]]
                 action_cost = cur_node[2] + sun[2]
+                hcost = heuristic(sun[0], problem)
+
+                # print(hcost)
 
                 open_nodes.push(
-                    (sun[0], sn_action_path, action_cost), action_cost + heuristic(sun[0], problem))
+                    (sun[0], sn_action_path, action_cost), action_cost + hcost)
 
 
 # Abbreviations

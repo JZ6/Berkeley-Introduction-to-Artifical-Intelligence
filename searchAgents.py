@@ -11,7 +11,7 @@
 # Student side autograding was added by Brad Miller, Nick Hay, and
 # Pieter Abbeel (pabbeel@cs.berkeley.edu).
 
-
+from copy import deepcopy
 """
 This file contains all of the agents that can be selected to control Pacman.  To
 select an agent, use the '-p' option when running pacman.py.  Arguments can be
@@ -497,7 +497,7 @@ class AStarFoodSearchAgent(SearchAgent):
         self.searchType = FoodSearchProblem
 
 
-def foodHeuristic(state, problem):
+def foodHeuristic(state_copy, problem_copy):
     """Your heuristic for the FoodSearchProblem goes here.
 
     This heuristic must be admissible to ensure correctness.
@@ -522,28 +522,30 @@ def foodHeuristic(state, problem):
     Subsequent calls to this heuristic can access
     problem.heuristicInfo['wallCount']
 
-    """
+     """
+    # state_copy = deepcopy(state)
+    # problem_copy = deepcopy(problem)
     result = 0
-    cur_pos, foodGrid = state
+    cur_pos, foodGrid = state_copy
 
     # Assume coords are unique
     food_coords = foodGrid.asList()
 
-    if problem.isGoalState(state):
+    if problem_copy.isGoalState(state_copy):
         return 0
 
     # Important
     if len(food_coords) == 1:
-        return mazeDistance(cur_pos, food_coords[0], problem.startingGameState)
+        return mazeDistance(cur_pos, food_coords[0], problem_copy.startingGameState)
 
-    if 'mst' not in problem.heuristicInfo:
+    if 'mst' not in problem_copy.heuristicInfo:
 
         total_food_num = len(food_coords)
 
-        food_graph = CreateFoodGraph(food_coords, total_food_num, problem)
+        food_graph = CreateFoodGraph(food_coords, total_food_num, problem_copy)
 
         if food_graph.isEmpty():
-            problem.heuristicInfo['mst'] = None
+            problem_copy.heuristicInfo['mst'] = None
             # print('No path to food')
             return 0
 
@@ -551,46 +553,59 @@ def foodHeuristic(state, problem):
         mst = ObtainDirectedMST(
             food_graph, total_food_num)
 
-        # print(mst)
+        problem_copy.heuristicInfo['mst'] = mst[0]
+        problem_copy.heuristicInfo['path'] = mst[1]
 
-        problem.heuristicInfo['mst'] = mst[0]
-        problem.heuristicInfo['path'] = mst[1]
-        problem.heuristicInfo['cost'] = mst[2]
+        # print(problem_copy.heuristicInfo['mst'])
 
-        head = problem.heuristicInfo['path'][0]
-        tail = problem.heuristicInfo['path'][-1]
+        head = problem_copy.heuristicInfo['path'][0]
+        tail = problem_copy.heuristicInfo['path'][-1]
 
-        distance_to_head = mazeDistance(
-            cur_pos, head, problem.startingGameState)
-        distance_to_tail = mazeDistance(
-            cur_pos, tail, problem.startingGameState)
+        path_to_head = mazePath(
+            cur_pos, head, problem_copy.startingGameState)
+        path_to_tail = mazePath(
+            cur_pos, tail, problem_copy.startingGameState)
 
         # True == tail, false == head
-        closest_end = distance_to_head > distance_to_tail
+        closest_end = len(path_to_head) > len(path_to_tail)
+
+        ph = DirToCoords(cur_pos, path_to_head)
+        ph.pop()
+        pt = DirToCoords(cur_pos, path_to_tail)
+        pt.pop()
+        # print('ph')
+        # print(ph)
+        # print(pt)
 
         if closest_end:
-            problem.heuristicInfo['path'].reverse()
+            problem_copy.heuristicInfo['path'].reverse()
+            problem_copy.heuristicInfo['path'] = pt + \
+                problem_copy.heuristicInfo['path']
+        else:
+            problem_copy.heuristicInfo['path'] = ph + \
+                problem_copy.heuristicInfo['path']
+        # print('path')
+        print(problem_copy.heuristicInfo['path'])
 
-        # print(problem.heuristicInfo['path'])
+        problem_copy.heuristicInfo['target'] = problem_copy.heuristicInfo['path'].pop(
+            0)
 
-        problem.heuristicInfo['target'] = problem.heuristicInfo['path'].pop(0)
-
-    if not problem.heuristicInfo['path']:
-        if problem.heuristicInfo['target']:
-            return mazeDistance(cur_pos, food_coords[0], problem.startingGameState)
+    if not problem_copy.heuristicInfo['path']:
+        if problem_copy.heuristicInfo['target']:
+            return mazeDistance(cur_pos, food_coords[0], problem_copy.startingGameState)
         else:
             return 0
 
-    if cur_pos == problem.heuristicInfo['target']:
-        problem.heuristicInfo['target'] = ()
+    # print(cur_pos)
+    if cur_pos == problem_copy.heuristicInfo['target']:
+        problem_copy.heuristicInfo['target'] = problem_copy.heuristicInfo['path'].pop(
+            0)
+        return 0
         # print(cur_pos)
 
-    # No target food node
-    if not problem.heuristicInfo['target']:
-        problem.heuristicInfo['target'] = problem.heuristicInfo['path'].pop(0)
-
     result = mazeDistance(
-        cur_pos, problem.heuristicInfo['target'], problem.startingGameState)
+        cur_pos, problem_copy.heuristicInfo['target'], problem_copy.startingGameState)
+    # print(result)
 
     return result
 
@@ -627,7 +642,8 @@ def ObtainDirectedMST(food_graph, total_food_num):
 
     heads = [start_edge[0]]
     tails = [start_edge[1]]
-    path = [start_edge[0], start_edge[1]]
+    path = [start_edge[0]]
+    path.extend(DirToCoords(start_edge[0], start_edge[2]))
 
     seen_nodes = {heads[0]: 1, tails[0]: 1}
     reinsert_edges = []
@@ -638,7 +654,7 @@ def ObtainDirectedMST(food_graph, total_food_num):
         cur_nodes = set([cur_edge[0], cur_edge[1]])
         node_diff = cur_nodes - set(seen_nodes.keys())
 
-        if ((heads[0] in cur_edge) ^ (tails[0] in cur_edge)) and len(node_diff) == 1:
+        if ((heads[0] in cur_edge) ^ (tails[-1] in cur_edge)) and len(node_diff) == 1:
 
             next_node = node_diff.pop()
 
@@ -659,6 +675,9 @@ def ObtainDirectedMST(food_graph, total_food_num):
 
                 if tails[-1] == cur_edge[0]:
                     path.extend(DirToCoords(tails[-1], cur_edge[2]))
+                elif tails[-1] == cur_edge[1]:
+                    next_coords = RevDirToCoords(tails[-1], cur_edge[2])
+                    path.extend(next_coords)
 
                 tails.append(next_node)
 
@@ -680,17 +699,17 @@ def ObtainDirectedMST(food_graph, total_food_num):
 
     # print(seen_nodes)
 
-    food_order = heads + tails
+    # food_order = heads + tails
 
-    print(food_order)
-    print(mst_food)
-    print(path)
+    # print(mst_food)
+    # print(path)
 
-    return (mst_food, food_order, path)
+    return (mst_food, path)
 
 
 def RevDirToCoords(origin_coord, dirs):
     result = []
+    dirs.reverse()
     for dir in dirs:
         if dir == 'North':
             result.append('South')
@@ -711,7 +730,7 @@ def DirToCoords(origin_coord, dirs):
     result = []
     cur_coords = list(origin_coord)
 
-    print(origin_coord, dirs)
+    # print(origin_coord, dirs)
 
     for dir in dirs:
         if dir == 'North':
@@ -825,7 +844,7 @@ def mazeDistance(point1, point2, gameState):
     assert not walls[x2][y2], 'point2 is a wall: ' + str(point2)
     prob = PositionSearchProblem(
         gameState, start=point1, goal=point2, warn=False, visualize=False)
-    return len(search.astar(prob, manhattanHeuristic))
+    return len(search.bfs(prob))
 
 
 def mazePath(point1, point2, gameState):
@@ -836,4 +855,4 @@ def mazePath(point1, point2, gameState):
     assert not walls[x2][y2], 'point2 is a wall: ' + str(point2)
     prob = PositionSearchProblem(
         gameState, start=point1, goal=point2, warn=False, visualize=False)
-    return search.astar(prob, manhattanHeuristic)
+    return search.bfs(prob)

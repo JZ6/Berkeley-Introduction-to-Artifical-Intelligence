@@ -75,12 +75,31 @@ class ReflexAgent(Agent):
         newPos = successorGameState.getPacmanPosition()
         newFood = successorGameState.getFood()
         newGhostStates = successorGameState.getGhostStates()
+
+        for ghost in newGhostStates:
+            if not ghost.scaredTimer and withinGhostReach(newPos, ghost.configuration.getPosition()):
+                # print(ghost.scaredTimer, newPos,ghost.configuration.getPosition())
+                return -float('inf')
+
         newScaredTimes = [
             ghostState.scaredTimer for ghostState in newGhostStates]
 
-        "*** YOUR CODE HERE ***"
+        # print(newPos[0])
+        # # print(newFood)
+        # print(type(newGhostStates[0].configuration.getPosition()))
+        # print(newGhostStates[0].configuration.getDirection())
+        # print(newScaredTimes)
 
         return successorGameState.getScore()
+
+
+def withinGhostReach(pacmanPos, ghostPos):
+    if (pacmanPos == ghostPos) or (abs(pacmanPos[0] - ghostPos[0]) + abs(pacmanPos[1] - ghostPos[1])) == 1:
+        return True
+    return False
+
+
+print(withinGhostReach((14, 3), (13.0, 3.0)))
 
 
 def scoreEvaluationFunction(currentGameState):

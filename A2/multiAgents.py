@@ -93,7 +93,6 @@ class ReflexAgent(Agent):
         # newScaredTimes = [
         #     ghostState.scaredTimer for ghostState in newGhostStates]
 
-        print(currentGameState.getCapsules())
         # print(newFood.packBits())
         # print(type(newGhostStates[0].configuration.getPosition()))
         # print(newGhostStates[0].configuration.getDirection())
@@ -120,9 +119,9 @@ class ReflexAgent(Agent):
                         distanceToClosestFood = MHD
                         closestFood = (x, y)
 
-        print(distanceToClosestFood)
+        print(distanceToClosestGhost)
 
-        return successorGameState.getScore() + distanceToClosestFood
+        return successorGameState.getScore() + distanceToClosestFood + distanceToClosestGhost
 
 
 def withinGhostReach(pacmanPos, ghostPos):

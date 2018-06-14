@@ -81,16 +81,35 @@ class ReflexAgent(Agent):
                 # print(ghost.scaredTimer, newPos,ghost.configuration.getPosition())
                 return -float('inf')
 
-        newScaredTimes = [
-            ghostState.scaredTimer for ghostState in newGhostStates]
+        # newScaredTimes = [
+        #     ghostState.scaredTimer for ghostState in newGhostStates]
 
-        # print(newPos[0])
-        # # print(newFood)
+        print(currentGameState.getCapsules())
+        # print(newFood.packBits())
         # print(type(newGhostStates[0].configuration.getPosition()))
         # print(newGhostStates[0].configuration.getDirection())
         # print(newScaredTimes)
 
-        return successorGameState.getScore()
+        if newPos == currentGameState.getPacmanPosition():
+            return -float('inf')
+
+        if newPos in currentGameState.getCapsules():
+            return float('inf')
+
+        closestFood = (newFood.width/2, newFood.height/2)
+        distanceToClosestFood = float('inf')
+
+        for x in range(newFood.width):
+            for y in range(len(newFood[x])):
+                if (newFood[x][y]):
+                    MHD = manhattanDistance(newPos, (x, y))
+                    if MHD < distanceToClosestFood:
+                        distanceToClosestFood = MHD
+                        closestFood = (x, y)
+
+        print(distanceToClosestFood)
+
+        return successorGameState.getScore() + distanceToClosestFood
 
 
 def withinGhostReach(pacmanPos, ghostPos):
@@ -99,7 +118,8 @@ def withinGhostReach(pacmanPos, ghostPos):
     return False
 
 
-print(withinGhostReach((14, 3), (13.0, 3.0)))
+def findClosestFood():
+    pass
 
 
 def scoreEvaluationFunction(currentGameState):

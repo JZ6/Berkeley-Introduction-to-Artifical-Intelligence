@@ -76,10 +76,19 @@ class ReflexAgent(Agent):
         newFood = successorGameState.getFood()
         newGhostStates = successorGameState.getGhostStates()
 
+        closestGhost = (newFood.width/2, newFood.height/2)
+        distanceToClosestGhost = float('inf')
+
         for ghost in newGhostStates:
-            if not ghost.scaredTimer and withinGhostReach(newPos, ghost.configuration.getPosition()):
+            ghostPos = ghost.configuration.getPosition()
+            if not ghost.scaredTimer and withinGhostReach(newPos, ghostPos):
                 # print(ghost.scaredTimer, newPos,ghost.configuration.getPosition())
                 return -float('inf')
+
+            MHD = manhattanDistance(newPos, ghostPos)
+            if MHD < distanceToClosestGhost:
+                distanceToClosestGhost = MHD
+                closestGhost = ghostPos
 
         # newScaredTimes = [
         #     ghostState.scaredTimer for ghostState in newGhostStates]
@@ -102,6 +111,10 @@ class ReflexAgent(Agent):
         for x in range(newFood.width):
             for y in range(len(newFood[x])):
                 if (newFood[x][y]):
+
+                    if (x, y) == newPos:
+                        return float('inf')
+
                     MHD = manhattanDistance(newPos, (x, y))
                     if MHD < distanceToClosestFood:
                         distanceToClosestFood = MHD

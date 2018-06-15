@@ -53,6 +53,7 @@ class ReflexAgent(Agent):
 
         "Add more of your code here if you want to"
 
+        # print(legalMoves[chosenIndex])
         return legalMoves[chosenIndex]
 
     def evaluationFunction(self, currentGameState, action):
@@ -75,9 +76,7 @@ class ReflexAgent(Agent):
         newPos = successorGameState.getPacmanPosition()
         newFood = successorGameState.getFood()
         newGhostStates = successorGameState.getGhostStates()
-
-        closestGhost = (newFood.width/2, newFood.height/2)
-        distanceToClosestGhost = float('inf')
+        foodEaten = currentGameState.getNumFood() - successorGameState.getNumFood()
 
         for ghost in newGhostStates:
             ghostPos = ghost.configuration.getPosition()
@@ -85,43 +84,42 @@ class ReflexAgent(Agent):
                 # print(ghost.scaredTimer, newPos,ghost.configuration.getPosition())
                 return -float('inf')
 
-            MHD = manhattanDistance(newPos, ghostPos)
-            if MHD < distanceToClosestGhost:
-                distanceToClosestGhost = MHD
-                closestGhost = ghostPos
+        backtrackPenalty = 0
 
-        # newScaredTimes = [
-        #     ghostState.scaredTimer for ghostState in newGhostStates]
-
-        # print(newFood.packBits())
-        # print(type(newGhostStates[0].configuration.getPosition()))
-        # print(newGhostStates[0].configuration.getDirection())
-        # print(newScaredTimes)
+        # Check going back and forth
+        # pacDir = currentGameState.getPacmanState().getDirection()
+        # print(pacDir)
 
         if newPos == currentGameState.getPacmanPosition():
-            return -float('inf')
+            backtrackPenalty = 2
 
         if newPos in currentGameState.getCapsules():
             return float('inf')
 
+        if foodEaten:
+            # print("yum")
+            return float('inf')
+
         closestFood = (newFood.width/2, newFood.height/2)
-        distanceToClosestFood = float('inf')
+        distanceToClosestFood = 99
 
         for x in range(newFood.width):
             for y in range(len(newFood[x])):
                 if (newFood[x][y]):
 
                     if (x, y) == newPos:
-                        return float('inf')
+                        print("yes")
+                        return 100
 
                     MHD = manhattanDistance(newPos, (x, y))
                     if MHD < distanceToClosestFood:
                         distanceToClosestFood = MHD
                         closestFood = (x, y)
 
-        print(distanceToClosestGhost)
+        # print(newPos)
+        # print(successorGameState.getNumFood())
 
-        return successorGameState.getScore() + distanceToClosestFood + distanceToClosestGhost
+        return successorGameState.getScore() - distanceToClosestFood - backtrackPenalty
 
 
 def withinGhostReach(pacmanPos, ghostPos):

@@ -100,26 +100,10 @@ class ReflexAgent(Agent):
             # print("yum")
             return float('inf')
 
-        closestFood = (newFood.width/2, newFood.height/2)
-        distanceToClosestFood = 99
-
-        for x in range(newFood.width):
-            for y in range(len(newFood[x])):
-                if (newFood[x][y]):
-
-                    if (x, y) == newPos:
-                        print("yes")
-                        return 100
-
-                    MHD = manhattanDistance(newPos, (x, y))
-                    if MHD < distanceToClosestFood:
-                        distanceToClosestFood = MHD
-                        closestFood = (x, y)
-
         # print(newPos)
         # print(successorGameState.getNumFood())
 
-        return successorGameState.getScore() - distanceToClosestFood - backtrackPenalty
+        return successorGameState.getScore() - distanceToClosestFood(newPos, newFood) - backtrackPenalty
 
 
 def withinGhostReach(pacmanPos, ghostPos):
@@ -128,8 +112,18 @@ def withinGhostReach(pacmanPos, ghostPos):
     return False
 
 
-def findClosestFood():
-    pass
+def distanceToClosestFood(pacmanPos, foodGrid):
+    distanceToClosestFood = float('inf')
+
+    for x in range(foodGrid.width):
+        for y in range(len(foodGrid[x])):
+            if (foodGrid[x][y]):
+
+                MHD = manhattanDistance(pacmanPos, (x, y))
+                if MHD < distanceToClosestFood:
+                    distanceToClosestFood = MHD
+
+    return distanceToClosestFood
 
 
 def scoreEvaluationFunction(currentGameState):
@@ -187,7 +181,111 @@ class MinimaxAgent(MultiAgentSearchAgent):
             Returns the total number of agents in the game
         """
         "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+
+        if not self.depth:
+            return []
+
+        turnsLeft = self.depth
+
+        action = minMaxRecursion(
+            gameState, Directions.STOP, scoreEvaluationFunction, turnsLeft)[0]
+
+        print(action)
+        return action
+
+        # # Collect legal moves and successor states
+        # legalMoves = gameState.getLegalActions()
+
+        # # Choose one of the best actions
+        # scores = [self.evaluationFunction(
+        #     gameState, action) for action in legalMoves]
+        # bestScore = max(scores)
+        # bestIndices = [index for index in range(
+        #     len(scores)) if scores[index] == bestScore]
+        # # Pick randomly among the best
+        # chosenIndex = random.choice(bestIndices)
+
+        # "Add more of your code here if you want to"
+
+        # # print(legalMoves[chosenIndex])
+        # return legalMoves[chosenIndex]
+
+
+def minMaxRecursion(gameState, action, evaluationFunction, turnsLeft):
+
+    print(turnsLeft)
+
+    if not gameState.getNumFood() or gameState.isWin() or gameState.isLose() or turnsLeft < 1:
+        return [action, evaluationFunction(gameState)]
+
+    pacActions = gameState.getLegalActions(0)
+
+    if not pacActions:
+        print(pacActions)
+        return [action, evaluationFunction(gameState)]
+
+    bestAction = None
+    maxScore = -float('inf')
+
+    for pacMove in pacActions:
+
+        successorGameState = gameState.generateSuccessor(0, pacMove)
+
+        numGhosts = successorGameState.getNumAgents() - 1
+
+        maxGhost = -float('inf')
+
+        for ghost in range(1, numGhosts+1):
+
+    return [bestAction, maxScore]
+
+    # ghostActions = successorGameState.getLegalActions(ghost)
+
+    # if not ghostActions:
+    #     continue
+
+    # minScore = float('inf')
+
+    # for ghostMove in ghostActions:
+    #     ghostGameState = successorGameState.generateSuccessor(
+    #         ghost, ghostMove)
+
+    #     ghostScore = minMaxRecursion(
+    #         ghostGameState, pacMove, evaluationFunction, turnsLeft - 1)[1]
+
+    #     if ghostScore < minScore:
+    #         minScore = ghostScore
+
+    # if minScore > maxGhost:
+    #     maxGhost = minScore
+
+    #         for ghostMove in ghostActions:
+    #             ghostGameState = successorGameState.generateSuccessor(
+    #                 ghost, ghostMove)
+
+    #             terminalScore = float('inf')
+
+    #             if turnsLeft < 1:
+    #                 terminalScore = evaluationFunction(ghostGameState)
+
+    #             else:
+    #                 terminalScore = minMaxRecursion(
+    #                     ghostGameState, evaluationFunction, turnsLeft - 1)[1]
+
+    #             if terminalScore < minScore:
+    #                 minScore = terminalScore
+
+    #         if pacMove == 'Stop':
+    #             minScore -= 1
+    #         if minScore > bestScore:
+    #             bestAction = pacMove
+    #             bestScore = minScore
+
+    # # if bestScore == -9999:
+    # #     print(gameState.getPacmanPosition())
+    # # print [bestAction, bestScore]
+    # # print(gameState.getLegalActions(0))
+    # return [bestAction, bestScore]
 
 
 class AlphaBetaAgent(MultiAgentSearchAgent):
@@ -216,7 +314,7 @@ class ExpectimaxAgent(MultiAgentSearchAgent):
           legal moves.
         """
         "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+        pass
 
 
 def betterEvaluationFunction(currentGameState):
@@ -227,7 +325,7 @@ def betterEvaluationFunction(currentGameState):
       DESCRIPTION: <write something here so we know what you did>
     """
     "*** YOUR CODE HERE ***"
-    util.raiseNotDefined()
+    return 1
 
 
 # Abbreviation

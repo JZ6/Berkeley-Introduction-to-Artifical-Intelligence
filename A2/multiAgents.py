@@ -183,15 +183,12 @@ class MinimaxAgent(MultiAgentSearchAgent):
         "*** YOUR CODE HERE ***"
 
         if not self.depth:
-            return []
+            return Directions.STOP
 
-        turnsLeft = self.depth
+        print(gameState.getNumAgents() * self.depth)
 
-        action = minMaxRecursion(
-            gameState, Directions.STOP, scoreEvaluationFunction, turnsLeft)[0]
-
-        print(action)
-        return action
+        maxPac(gameState, self.evaluationFunction,
+               gameState.getNumAgents(), self.depth)
 
         # # Collect legal moves and successor states
         # legalMoves = gameState.getLegalActions()
@@ -211,6 +208,34 @@ class MinimaxAgent(MultiAgentSearchAgent):
         # return legalMoves[chosenIndex]
 
 
+def maxPac(gameState, evaluationFunction, depth):
+
+    pacActions = gameState.getLegalPacmanActions()
+
+    if not pacActions:
+        return evaluationFunction(gameState)
+
+    for pacMove in pacActions:
+
+        successorGameState = gameState.generatePacmanSuccessor(pacMove)
+
+        numGhosts = successorGameState.getNumAgents() - 1
+        minGhost(successorGameState, 1, numGhosts, evaluationFunction, depth)
+
+
+def minGhost(gameState, currentGhost, numGhosts, evaluationFunction, depth):
+
+    if currentGhost > numGhosts and depth > 0:
+        maxPac(gameState, evaluationFunction, depth - 1)
+
+    ghostActions = gameState.getLegalActions(currentGhost)
+
+    for ghostMove in ghostActions:
+        ghostGameState = gameState.generateSuccessor(currentGhost, ghostMove)
+        minGhost(ghostGameState, currentGhost + 1,
+                 numGhosts, evaluationFunction, depth)
+
+
 def minMaxRecursion(gameState, action, evaluationFunction, turnsLeft):
 
     print(turnsLeft)
@@ -218,7 +243,7 @@ def minMaxRecursion(gameState, action, evaluationFunction, turnsLeft):
     if not gameState.getNumFood() or gameState.isWin() or gameState.isLose() or turnsLeft < 1:
         return [action, evaluationFunction(gameState)]
 
-    pacActions = gameState.getLegalActions(0)
+    pacActions = gameState.getLegalPacmanActions()
 
     if not pacActions:
         print(pacActions)
@@ -236,6 +261,7 @@ def minMaxRecursion(gameState, action, evaluationFunction, turnsLeft):
         maxGhost = -float('inf')
 
         for ghost in range(1, numGhosts+1):
+            pass
 
     return [bestAction, maxScore]
 

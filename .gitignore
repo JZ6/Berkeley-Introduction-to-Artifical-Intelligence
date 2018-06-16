@@ -2,3 +2,5 @@
 .vscode/settings.json
 *.pyc
 A2/.vscode/launch.json
+A2/.profile
+A2/.vscode/settings.json

@@ -187,8 +187,7 @@ class MinimaxAgent(MultiAgentSearchAgent):
 
         print(gameState.getNumAgents() * self.depth)
 
-        maxPac(gameState, self.evaluationFunction,
-               gameState.getNumAgents(), self.depth)
+        maxPac(gameState, self.evaluationFunction, self.depth)
 
         # # Collect legal moves and successor states
         # legalMoves = gameState.getLegalActions()
@@ -215,6 +214,8 @@ def maxPac(gameState, evaluationFunction, depth):
     if not pacActions:
         return evaluationFunction(gameState)
 
+    maxScore = -float('inf')
+
     for pacMove in pacActions:
 
         successorGameState = gameState.generatePacmanSuccessor(pacMove)
@@ -225,15 +226,31 @@ def maxPac(gameState, evaluationFunction, depth):
 
 def minGhost(gameState, currentGhost, numGhosts, evaluationFunction, depth):
 
-    if currentGhost > numGhosts and depth > 0:
-        maxPac(gameState, evaluationFunction, depth - 1)
+    if not gameState.getNumFood() or gameState.isWin() or gameState.isLose():
+        return evaluationFunction(gameState)
+
+    if currentGhost > numGhosts:
+        if depth > 0:
+            maxPac(gameState, evaluationFunction, depth - 1)
+        else:
+            return evaluationFunction(gameState)
 
     ghostActions = gameState.getLegalActions(currentGhost)
 
+    minScore = float('inf')
+
+    if not ghostActions:
+        return evaluationFunction(gameState)
+
     for ghostMove in ghostActions:
         ghostGameState = gameState.generateSuccessor(currentGhost, ghostMove)
-        minGhost(ghostGameState, currentGhost + 1,
-                 numGhosts, evaluationFunction, depth)
+        ghostScore = minGhost(ghostGameState, currentGhost + 1,
+                              numGhosts, evaluationFunction, depth)
+
+        if ghostScore < minGhost:
+            minGhost = ghostScore
+
+    return minGhost
 
 
 def minMaxRecursion(gameState, action, evaluationFunction, turnsLeft):

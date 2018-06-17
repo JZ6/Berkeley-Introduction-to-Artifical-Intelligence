@@ -183,20 +183,20 @@ class MinimaxAgent(MultiAgentSearchAgent):
         if not self.depth:
             return Directions.STOP
 
-        return self.maxPac(gameState, self.evaluationFunction, self.depth)[1]
+        return self.maxPac(gameState, self.depth)[1]
 
-    def maxPac(self, gameState, evaluationFunction, depth):
+    def maxPac(self, gameState, depth):
 
         if depth < 1:
-            return [evaluationFunction(gameState), Directions.STOP]
+            return [self.evaluationFunction(gameState), Directions.STOP]
 
         if gameState.isWin() or gameState.isLose():
-            return [evaluationFunction(gameState), Directions.STOP]
+            return [self.evaluationFunction(gameState), Directions.STOP]
 
         pacActions = gameState.getLegalActions(0)
 
         if not pacActions:
-            return [evaluationFunction(gameState), Directions.STOP]
+            return [self.evaluationFunction(gameState), Directions.STOP]
 
         maxScore = -float('inf')
         bestAction = None
@@ -206,8 +206,8 @@ class MinimaxAgent(MultiAgentSearchAgent):
             successorGameState = gameState.generateSuccessor(0, pacMove)
 
             numGhosts = successorGameState.getNumAgents() - 1
-            ghostScore = self.minGhost(successorGameState, 1,
-                                       numGhosts, evaluationFunction, depth)[0]
+            ghostScore = self.minGhost(
+                successorGameState, 1, numGhosts, depth)[0]
 
             if ghostScore > maxScore:
                 maxScore = ghostScore
@@ -215,35 +215,35 @@ class MinimaxAgent(MultiAgentSearchAgent):
 
         return [maxScore, bestAction]
 
-    def minGhost(self, gameState, currentGhost, numGhosts, evaluationFunction, depth):
+    def minGhost(self, gameState, currentGhost, numGhosts, depth):
 
         if gameState.isWin() or gameState.isLose():
-            return [evaluationFunction(gameState), Directions.STOP]
+            return [self.evaluationFunction(gameState), Directions.STOP]
 
         if currentGhost > numGhosts:
             if depth > 0:
-                return self.maxPac(gameState, evaluationFunction, depth - 1)
+                return self.maxPac(gameState, depth - 1)
             else:
-                return [evaluationFunction(gameState), Directions.STOP]
+                return [self.evaluationFunction(gameState), Directions.STOP]
 
         ghostActions = gameState.getLegalActions(currentGhost)
 
         minScore = float('inf')
 
         if not ghostActions:
-            return [evaluationFunction(gameState), Directions.STOP]
+            return [self.evaluationFunction(gameState), Directions.STOP]
 
         bestAction = None
 
         for ghostMove in ghostActions:
             ghostGameState = gameState.generateSuccessor(
                 currentGhost, ghostMove)
-            ghostScore = self.minGhost(ghostGameState, currentGhost + 1,
-                                       numGhosts, evaluationFunction, depth)[0]
+            ghostScore = self.minGhost(
+                ghostGameState, currentGhost + 1, numGhosts,  depth)[0]
 
-        if ghostScore < minScore:
-            minScore = ghostScore
-            bestAction = ghostMove
+            if ghostScore < minScore:
+                minScore = ghostScore
+                bestAction = ghostMove
 
         return [minScore, bestAction]
 
@@ -281,7 +281,7 @@ def betterEvaluationFunction(currentGameState):
       Your extreme ghost-hunting, pellet-nabbing, food-gobbling, unstoppable
       evaluation function (question 5).
 
-      DESCRIPTION: Try to not go into positions which can lead to dying to a ghost.
+     DESCRIPTION: Try to not go into positions which can lead to dying to a ghost.
     """
 
     numFood = currentGameState.getNumFood()
@@ -305,6 +305,7 @@ def betterEvaluationFunction(currentGameState):
             return scoreEvaluationFunction(currentGameState) - distanceToClosestFood(pacPos, foodGrid) - numFood*10 - numGhosts*100 - numCapsules*10
 
     return scoreEvaluationFunction(currentGameState) - distanceToClosestFood(pacPos, foodGrid) - numFood*10 - numGhosts*10 - numCapsules*10
+
 
 
 # Abbreviation

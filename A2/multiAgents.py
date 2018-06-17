@@ -180,155 +180,73 @@ class MinimaxAgent(MultiAgentSearchAgent):
           gameState.getNumAgents():
             Returns the total number of agents in the game
         """
-        "*** YOUR CODE HERE ***"
-
         if not self.depth:
             return Directions.STOP
 
-        print(gameState.getNumAgents() * self.depth)
-
-        maxPac(gameState, self.evaluationFunction, self.depth)
-
-        # # Collect legal moves and successor states
-        # legalMoves = gameState.getLegalActions()
-
-        # # Choose one of the best actions
-        # scores = [self.evaluationFunction(
-        #     gameState, action) for action in legalMoves]
-        # bestScore = max(scores)
-        # bestIndices = [index for index in range(
-        #     len(scores)) if scores[index] == bestScore]
-        # # Pick randomly among the best
-        # chosenIndex = random.choice(bestIndices)
-
-        # "Add more of your code here if you want to"
-
-        # # print(legalMoves[chosenIndex])
-        # return legalMoves[chosenIndex]
+        return maxPac(gameState, self.evaluationFunction, self.depth)[1]
 
 
 def maxPac(gameState, evaluationFunction, depth):
 
-    pacActions = gameState.getLegalPacmanActions()
+    if depth < 1:
+        return [evaluationFunction(gameState), Directions.STOP]
+
+    if gameState.isWin() or gameState.isLose():
+        return [evaluationFunction(gameState), Directions.STOP]
+
+    pacActions = gameState.getLegalActions(0)
 
     if not pacActions:
-        return evaluationFunction(gameState)
+        return [evaluationFunction(gameState), Directions.STOP]
 
     maxScore = -float('inf')
-
-    for pacMove in pacActions:
-
-        successorGameState = gameState.generatePacmanSuccessor(pacMove)
-
-        numGhosts = successorGameState.getNumAgents() - 1
-        minGhost(successorGameState, 1, numGhosts, evaluationFunction, depth)
-
-
-def minGhost(gameState, currentGhost, numGhosts, evaluationFunction, depth):
-
-    if not gameState.getNumFood() or gameState.isWin() or gameState.isLose():
-        return evaluationFunction(gameState)
-
-    if currentGhost > numGhosts:
-        if depth > 0:
-            maxPac(gameState, evaluationFunction, depth - 1)
-        else:
-            return evaluationFunction(gameState)
-
-    ghostActions = gameState.getLegalActions(currentGhost)
-
-    minScore = float('inf')
-
-    if not ghostActions:
-        return evaluationFunction(gameState)
-
-    for ghostMove in ghostActions:
-        ghostGameState = gameState.generateSuccessor(currentGhost, ghostMove)
-        ghostScore = minGhost(ghostGameState, currentGhost + 1,
-                              numGhosts, evaluationFunction, depth)
-
-        if ghostScore < minGhost:
-            minGhost = ghostScore
-
-    return minGhost
-
-
-def minMaxRecursion(gameState, action, evaluationFunction, turnsLeft):
-
-    print(turnsLeft)
-
-    if not gameState.getNumFood() or gameState.isWin() or gameState.isLose() or turnsLeft < 1:
-        return [action, evaluationFunction(gameState)]
-
-    pacActions = gameState.getLegalPacmanActions()
-
-    if not pacActions:
-        print(pacActions)
-        return [action, evaluationFunction(gameState)]
-
     bestAction = None
-    maxScore = -float('inf')
 
     for pacMove in pacActions:
 
         successorGameState = gameState.generateSuccessor(0, pacMove)
 
         numGhosts = successorGameState.getNumAgents() - 1
+        ghostScore = minGhost(successorGameState, 1,
+                              numGhosts, evaluationFunction, depth)[0]
 
-        maxGhost = -float('inf')
+        if ghostScore > maxScore:
+            maxScore = ghostScore
+            bestAction = pacMove
 
-        for ghost in range(1, numGhosts+1):
-            pass
+    return [maxScore, bestAction]
 
-    return [bestAction, maxScore]
 
-    # ghostActions = successorGameState.getLegalActions(ghost)
+def minGhost(gameState, currentGhost, numGhosts, evaluationFunction, depth):
 
-    # if not ghostActions:
-    #     continue
+    if gameState.isWin() or gameState.isLose():
+        return [evaluationFunction(gameState), Directions.STOP]
 
-    # minScore = float('inf')
+    if currentGhost > numGhosts:
+        if depth > 0:
+            return maxPac(gameState, evaluationFunction, depth - 1)
+        else:
+            return [evaluationFunction(gameState), Directions.STOP]
 
-    # for ghostMove in ghostActions:
-    #     ghostGameState = successorGameState.generateSuccessor(
-    #         ghost, ghostMove)
+    ghostActions = gameState.getLegalActions(currentGhost)
 
-    #     ghostScore = minMaxRecursion(
-    #         ghostGameState, pacMove, evaluationFunction, turnsLeft - 1)[1]
+    minScore = float('inf')
 
-    #     if ghostScore < minScore:
-    #         minScore = ghostScore
+    if not ghostActions:
+        return [evaluationFunction(gameState), Directions.STOP]
 
-    # if minScore > maxGhost:
-    #     maxGhost = minScore
+    bestAction = None
 
-    #         for ghostMove in ghostActions:
-    #             ghostGameState = successorGameState.generateSuccessor(
-    #                 ghost, ghostMove)
+    for ghostMove in ghostActions:
+        ghostGameState = gameState.generateSuccessor(currentGhost, ghostMove)
+        ghostScore = minGhost(ghostGameState, currentGhost + 1,
+                              numGhosts, evaluationFunction, depth)[0]
 
-    #             terminalScore = float('inf')
+        if ghostScore < minScore:
+            minScore = ghostScore
+            bestAction = ghostMove
 
-    #             if turnsLeft < 1:
-    #                 terminalScore = evaluationFunction(ghostGameState)
-
-    #             else:
-    #                 terminalScore = minMaxRecursion(
-    #                     ghostGameState, evaluationFunction, turnsLeft - 1)[1]
-
-    #             if terminalScore < minScore:
-    #                 minScore = terminalScore
-
-    #         if pacMove == 'Stop':
-    #             minScore -= 1
-    #         if minScore > bestScore:
-    #             bestAction = pacMove
-    #             bestScore = minScore
-
-    # # if bestScore == -9999:
-    # #     print(gameState.getPacmanPosition())
-    # # print [bestAction, bestScore]
-    # # print(gameState.getLegalActions(0))
-    # return [bestAction, bestScore]
+    return [minScore, bestAction]
 
 
 class AlphaBetaAgent(MultiAgentSearchAgent):

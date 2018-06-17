@@ -183,10 +183,9 @@ class MinimaxAgent(MultiAgentSearchAgent):
         if not self.depth:
             return Directions.STOP
 
-        return maxPac(gameState, self.evaluationFunction, self.depth)[1]
+        return self.maxPac(gameState, self.evaluationFunction, self.depth)[1]
 
-
-def maxPac(gameState, evaluationFunction, depth):
+    def maxPac(self, gameState, evaluationFunction, depth):
 
     if depth < 1:
         return [evaluationFunction(gameState), Directions.STOP]
@@ -207,7 +206,7 @@ def maxPac(gameState, evaluationFunction, depth):
         successorGameState = gameState.generateSuccessor(0, pacMove)
 
         numGhosts = successorGameState.getNumAgents() - 1
-        ghostScore = minGhost(successorGameState, 1,
+            ghostScore = self.minGhost(successorGameState, 1,
                               numGhosts, evaluationFunction, depth)[0]
 
         if ghostScore > maxScore:
@@ -216,15 +215,14 @@ def maxPac(gameState, evaluationFunction, depth):
 
     return [maxScore, bestAction]
 
-
-def minGhost(gameState, currentGhost, numGhosts, evaluationFunction, depth):
+    def minGhost(self, gameState, currentGhost, numGhosts, evaluationFunction, depth):
 
     if gameState.isWin() or gameState.isLose():
         return [evaluationFunction(gameState), Directions.STOP]
 
     if currentGhost > numGhosts:
         if depth > 0:
-            return maxPac(gameState, evaluationFunction, depth - 1)
+                return self.maxPac(gameState, evaluationFunction, depth - 1)
         else:
             return [evaluationFunction(gameState), Directions.STOP]
 
@@ -238,8 +236,9 @@ def minGhost(gameState, currentGhost, numGhosts, evaluationFunction, depth):
     bestAction = None
 
     for ghostMove in ghostActions:
-        ghostGameState = gameState.generateSuccessor(currentGhost, ghostMove)
-        ghostScore = minGhost(ghostGameState, currentGhost + 1,
+            ghostGameState = gameState.generateSuccessor(
+                currentGhost, ghostMove)
+            ghostScore = self.minGhost(ghostGameState, currentGhost + 1,
                               numGhosts, evaluationFunction, depth)[0]
 
         if ghostScore < minScore:
@@ -270,7 +269,6 @@ class ExpectimaxAgent(MultiAgentSearchAgent):
     def getAction(self, gameState):
         """
           Returns the expectimax action using self.depth and self.evaluationFunction
-
           All ghosts should be modeled as choosing uniformly at random from their
           legal moves.
         """
@@ -283,10 +281,30 @@ def betterEvaluationFunction(currentGameState):
       Your extreme ghost-hunting, pellet-nabbing, food-gobbling, unstoppable
       evaluation function (question 5).
 
-      DESCRIPTION: <write something here so we know what you did>
+      DESCRIPTION: Try to not go into positions which can lead to dying to a ghost.
     """
-    "*** YOUR CODE HERE ***"
-    return 1
+
+    numFood = currentGameState.getNumFood()
+
+    if not numFood or currentGameState.isWin() or currentGameState.isLose():
+        return scoreEvaluationFunction(currentGameState)
+
+    pacPos = currentGameState.getPacmanPosition()
+    ghostStates = currentGameState.getGhostStates()
+
+    numGhosts = currentGameState.getNumAgents() - 1
+
+    numCapsules = len(currentGameState.getCapsules())
+
+    foodGrid = currentGameState.getFood()
+
+    for ghost in ghostStates:
+        ghostPos = ghost.configuration.getPosition()
+        if not ghost.scaredTimer and withinGhostReach(pacPos, ghostPos):
+            # print(ghost.scaredTimer, newPos,ghost.configuration.getPosition())
+            return scoreEvaluationFunction(currentGameState) - distanceToClosestFood(pacPos, foodGrid) - numFood*10 - numGhosts*100 - numCapsules*10
+
+    return scoreEvaluationFunction(currentGameState) - distanceToClosestFood(pacPos, foodGrid) - numFood*10 - numGhosts*10 - numCapsules*10
 
 
 # Abbreviation

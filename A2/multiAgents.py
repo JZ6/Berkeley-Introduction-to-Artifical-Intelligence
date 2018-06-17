@@ -187,65 +187,65 @@ class MinimaxAgent(MultiAgentSearchAgent):
 
     def maxPac(self, gameState, evaluationFunction, depth):
 
-    if depth < 1:
-        return [evaluationFunction(gameState), Directions.STOP]
+        if depth < 1:
+            return [evaluationFunction(gameState), Directions.STOP]
 
-    if gameState.isWin() or gameState.isLose():
-        return [evaluationFunction(gameState), Directions.STOP]
+        if gameState.isWin() or gameState.isLose():
+            return [evaluationFunction(gameState), Directions.STOP]
 
-    pacActions = gameState.getLegalActions(0)
+        pacActions = gameState.getLegalActions(0)
 
-    if not pacActions:
-        return [evaluationFunction(gameState), Directions.STOP]
+        if not pacActions:
+            return [evaluationFunction(gameState), Directions.STOP]
 
-    maxScore = -float('inf')
-    bestAction = None
+        maxScore = -float('inf')
+        bestAction = None
 
-    for pacMove in pacActions:
+        for pacMove in pacActions:
 
-        successorGameState = gameState.generateSuccessor(0, pacMove)
+            successorGameState = gameState.generateSuccessor(0, pacMove)
 
-        numGhosts = successorGameState.getNumAgents() - 1
+            numGhosts = successorGameState.getNumAgents() - 1
             ghostScore = self.minGhost(successorGameState, 1,
-                              numGhosts, evaluationFunction, depth)[0]
+                                       numGhosts, evaluationFunction, depth)[0]
 
-        if ghostScore > maxScore:
-            maxScore = ghostScore
-            bestAction = pacMove
+            if ghostScore > maxScore:
+                maxScore = ghostScore
+                bestAction = pacMove
 
-    return [maxScore, bestAction]
+        return [maxScore, bestAction]
 
     def minGhost(self, gameState, currentGhost, numGhosts, evaluationFunction, depth):
 
-    if gameState.isWin() or gameState.isLose():
-        return [evaluationFunction(gameState), Directions.STOP]
-
-    if currentGhost > numGhosts:
-        if depth > 0:
-                return self.maxPac(gameState, evaluationFunction, depth - 1)
-        else:
+        if gameState.isWin() or gameState.isLose():
             return [evaluationFunction(gameState), Directions.STOP]
 
-    ghostActions = gameState.getLegalActions(currentGhost)
+        if currentGhost > numGhosts:
+            if depth > 0:
+                return self.maxPac(gameState, evaluationFunction, depth - 1)
+            else:
+                return [evaluationFunction(gameState), Directions.STOP]
 
-    minScore = float('inf')
+        ghostActions = gameState.getLegalActions(currentGhost)
 
-    if not ghostActions:
-        return [evaluationFunction(gameState), Directions.STOP]
+        minScore = float('inf')
 
-    bestAction = None
+        if not ghostActions:
+            return [evaluationFunction(gameState), Directions.STOP]
 
-    for ghostMove in ghostActions:
+        bestAction = None
+
+        for ghostMove in ghostActions:
             ghostGameState = gameState.generateSuccessor(
                 currentGhost, ghostMove)
             ghostScore = self.minGhost(ghostGameState, currentGhost + 1,
-                              numGhosts, evaluationFunction, depth)[0]
+                                       numGhosts, evaluationFunction, depth)[0]
 
         if ghostScore < minScore:
             minScore = ghostScore
             bestAction = ghostMove
 
-    return [minScore, bestAction]
+        return [minScore, bestAction]
 
 
 class AlphaBetaAgent(MultiAgentSearchAgent):

@@ -391,7 +391,7 @@ def betterEvaluationFunction(currentGameState):
     """
 
     if currentGameState.isLose():
-        return -float('inf')
+        return scoreEvaluationFunction(currentGameState) - 500
 
     numFood = currentGameState.getNumFood()
 

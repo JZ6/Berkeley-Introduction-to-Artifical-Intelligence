@@ -356,7 +356,13 @@ class ExpectimaxAgent(MultiAgentSearchAgent):
         bestMove = None
         for move in moves:
             nextState = gameState.generateSuccessor(0, move)
+
             score = (self.chooseMove(nextState, depth, 1))
+
+            if move == Directions.STOP:
+                # print (1)
+                score[0] -= 2
+
             # print(score)
             if float(score[0]) > bestScore:
                 bestScore = score[0]

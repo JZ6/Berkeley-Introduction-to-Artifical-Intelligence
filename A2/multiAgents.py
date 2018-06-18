@@ -251,76 +251,57 @@ class AlphaBetaAgent(MultiAgentSearchAgent):
         """
           Returns the minimax action using self.depth and self.evaluationFunction
         """
-        return self.maxPac(gameState, self.depth, -float('inf'), float('inf'))[1]
-
-    def maxPac(self, gameState, depth, alpha, beta):
-
-        if depth < 1 or gameState.isWin() or gameState.isLose():
-            return [self.evaluationFunction(gameState), Directions.STOP]
-
-        pacActions = gameState.getLegalActions(0)
-
-        if not pacActions:
-            return [self.evaluationFunction(gameState), Directions.STOP]
-
-        bestAction = None
-
-        maxScore = -float('inf')
-
-        for pacMove in pacActions:
-
-            successorGameState = gameState.generateSuccessor(0, pacMove)
-
-            numGhosts = successorGameState.getNumAgents() - 1
-            ghostScore = self.minGhost(
-                successorGameState, 1, numGhosts, depth, alpha, beta)[0]
-
-            if ghostScore > maxScore:
-                maxScore = ghostScore
-                bestAction = pacMove
-
-            if maxScore >= beta:
-                break
-
-            alpha = max(alpha, maxScore)
-            # print("a", alpha)
-
-        return [alpha, bestAction]
-
-    def minGhost(self, gameState, currentGhost, numGhosts, depth, alpha, beta):
-
-        if gameState.isWin() or gameState.isLose():
-            return [self.evaluationFunction(gameState), Directions.STOP]
-
-        if currentGhost > numGhosts:
-            if depth > 0:
-                return self.maxPac(gameState, depth - 1, alpha, beta)
-            else:
-                return [self.evaluationFunction(gameState), Directions.STOP]
-
-        ghostActions = gameState.getLegalActions(currentGhost)
-
-        if not ghostActions:
-            return [self.evaluationFunction(gameState), Directions.STOP]
-
-        bestAction = None
-        minScore = float('inf')
-
-        for ghostMove in ghostActions:
-            ghostGameState = gameState.generateSuccessor(
-                currentGhost, ghostMove)
-            ghostScore = self.minGhost(
-                ghostGameState, currentGhost + 1, numGhosts,  depth, alpha, beta)[0]
-
-            if ghostScore < minScore:
-                minScore = ghostScore
-
-            if minScore <= alpha:
-                break
-
-            beta = min(beta, minScore)
-
-        return [beta, bestAction]
+        alpha = -float('inf')
+	beta = float('inf')
+    	return self.chooseMove(gameState, alpha, beta, self.depth, 0)[1]
+    def chooseMove(self, gameState, alpha, beta, depth, gameAgent):
+	if depth < 1 or gameState.isWin() or gameState.isLose():
+		return [self.evaluationFunction(gameState), Directions.STOP]
+	if gameAgent == 0:
+		#It is pacman and a max node
+		return self.pacmanMove(gameState, alpha, beta, depth)
+	if gameAgent > 0:
+		#It is a ghost and a min node
+		return self.ghostMove(gameState, alpha, beta, depth, gameAgent)
+    def pacmanMove(self, gameState, alpha, beta, depth):
+	moves = gameState.getLegalActions(0)
+	value = alpha
+	if not moves:
+		return [self.evaluationFunction(gameState)]	
+	bestMove = None
+	for move in moves:
+	    if alpha >= beta:
+		#Don't bother searching other children		
+		break;
+	    nextState = gameState.generateSuccessor(0, move)
+	    score = self.chooseMove(nextState, alpha, beta, depth, 1)
+	    if score[0] > value:
+		value = score[0]
+		alpha = score[0]
+		bestMove = move
+	return [alpha, bestMove]
+    def ghostMove(self, gameState, alpha, beta, depth, gameAgent):
+	value = beta
+	if gameAgent >= gameState.getNumAgents():
+		#We've been through all the ghosts
+		return self.chooseMove(gameState, alpha, beta, depth - 1, 0)
+	#It is still a ghost 
+	moves = gameState.getLegalActions(gameAgent)
+	if not moves:
+		return [self.evaluationFunction(gameState), Directions.STOP]
+	scores = 0	
+	bestMove = None
+	for move in moves:
+		if beta <= alpha:
+			#Don't bother searching other children
+			break;
+		nextState = gameState.generateSuccessor(gameAgent, move)
+		score = self.chooseMove(nextState, alpha, beta, depth, gameAgent + 1)
+		if score[0] < value:
+			value = score[0]
+			beta = score[0]
+			bestMove = move
+	return [beta, bestMove]
 
 
 class ExpectimaxAgent(MultiAgentSearchAgent):

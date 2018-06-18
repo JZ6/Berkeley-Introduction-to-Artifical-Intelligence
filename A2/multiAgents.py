@@ -327,6 +327,7 @@ class ExpectimaxAgent(MultiAgentSearchAgent):
     """
       Your expectimax agent (question 4)
     """
+
     def getAction(self, gameState):
         """
           Returns the expectimax action using self.depth and self.evaluationFunction
@@ -334,53 +335,51 @@ class ExpectimaxAgent(MultiAgentSearchAgent):
           All ghosts should be modeled as choosing uniformly at random from their
           legal moves.
         """
-	return self.chooseMove(gameState, self.depth, 0)[1]
+        return self.chooseMove(gameState, self.depth, 0)[1]
+
     def chooseMove(self, gameState, depth, gameAgent):
-	#print(depth)
-	if depth < 1 or gameState.isWin() or gameState.isLose():
-		return [self.evaluationFunction(gameState), Directions.STOP]
-	if gameAgent == 0:
-		#It is pacman and a max node
-		return self.pacmanMove(gameState, depth)
-	if gameAgent > 0:
-		#It is a ghost and a exp node
-		return self.ghostMove(gameState, depth, gameAgent)
+        # print(depth)
+        if depth < 1 or gameState.isWin() or gameState.isLose():
+            return [self.evaluationFunction(gameState), Directions.STOP]
+        if gameAgent == 0:
+            # It is pacman and a max node
+            return self.pacmanMove(gameState, depth)
+        if gameAgent > 0:
+            # It is a ghost and a exp node
+            return self.ghostMove(gameState, depth, gameAgent)
+
     def pacmanMove(self, gameState, depth):
-	moves = gameState.getLegalActions(0)
-	if not moves:
-		return [self.evaluationFunction(gameState)]
-	bestScore = -float('inf')	
-	bestMove = None
-	for move in moves:
-	    nextState = gameState.generateSuccessor(0, move)
-	    score = (self.chooseMove(nextState, depth, 1))
-	    #print(score)
-	    if float(score[0]) > bestScore:
-	        bestScore = score[0]
-	        bestMove = move
-	return [bestScore, bestMove]
-	
-	
+        moves = gameState.getLegalActions(0)
+        if not moves:
+            return [self.evaluationFunction(gameState)]
+        bestScore = -float('inf')
+        bestMove = None
+        for move in moves:
+            nextState = gameState.generateSuccessor(0, move)
+            score = (self.chooseMove(nextState, depth, 1))
+            # print(score)
+            if float(score[0]) > bestScore:
+                bestScore = score[0]
+                bestMove = move
+        return [bestScore, bestMove]
+
     def ghostMove(self, gameState, depth, gameAgent):
-	if gameAgent >= gameState.getNumAgents():
-		#We've been through all the ghosts
-		return self.chooseMove(gameState, depth - 1, 0)
-	#It is still a ghost 
-	moves = gameState.getLegalActions(gameAgent)
-	if not moves:
-		return [self.evaluationFunction(gameState)]
-	scores = 0	
-	bestMove = None
-	prob = 1.0/float(len(moves))
-	for move in moves:
-		nextState = gameState.generateSuccessor(gameAgent, move)
-		score = self.chooseMove(nextState, depth, gameAgent + 1)
-		#print(score)
-		scores += (float(score[0]) * prob)
-	return [scores]
-	
-        
-    
+        if gameAgent >= gameState.getNumAgents():
+                # We've been through all the ghosts
+            return self.chooseMove(gameState, depth - 1, 0)
+        # It is still a ghost
+        moves = gameState.getLegalActions(gameAgent)
+        if not moves:
+            return [self.evaluationFunction(gameState)]
+        scores = 0
+        bestMove = None
+        prob = 1.0/float(len(moves))
+        for move in moves:
+            nextState = gameState.generateSuccessor(gameAgent, move)
+            score = self.chooseMove(nextState, depth, gameAgent + 1)
+            # print(score)
+            scores += (float(score[0]) * prob)
+        return [scores]
 
 
 def betterEvaluationFunction(currentGameState):
@@ -391,9 +390,12 @@ def betterEvaluationFunction(currentGameState):
     DESCRIPTION: Try to not go into positions which can lead to dying to a ghost.
     """
 
+    if currentGameState.isLose():
+        return -float('inf')
+
     numFood = currentGameState.getNumFood()
 
-    if not numFood or currentGameState.isWin() or currentGameState.isLose():
+    if not numFood or currentGameState.isWin():
         return scoreEvaluationFunction(currentGameState)
 
     pacPos = currentGameState.getPacmanPosition()
@@ -409,10 +411,9 @@ def betterEvaluationFunction(currentGameState):
         ghostPos = ghost.configuration.getPosition()
         if not ghost.scaredTimer and withinGhostReach(pacPos, ghostPos):
             # print(ghost.scaredTimer, newPos,ghost.configuration.getPosition())
-            return scoreEvaluationFunction(currentGameState) - distanceToClosestFood(pacPos, foodGrid) - numFood*10 - numGhosts*100 - numCapsules*10
+            return scoreEvaluationFunction(currentGameState) - distanceToClosestFood(pacPos, foodGrid) - numFood*10 - 500 - numCapsules*10
 
     return scoreEvaluationFunction(currentGameState) - distanceToClosestFood(pacPos, foodGrid) - numFood*10 - numGhosts*10 - numCapsules*10
-
 
 
 # Abbreviation

@@ -180,17 +180,11 @@ class MinimaxAgent(MultiAgentSearchAgent):
           gameState.getNumAgents():
             Returns the total number of agents in the game
         """
-        if not self.depth:
-            return Directions.STOP
-
         return self.maxPac(gameState, self.depth)[1]
 
     def maxPac(self, gameState, depth):
 
-        if depth < 1:
-            return [self.evaluationFunction(gameState), Directions.STOP]
-
-        if gameState.isWin() or gameState.isLose():
+        if depth < 1 or gameState.isWin() or gameState.isLose():
             return [self.evaluationFunction(gameState), Directions.STOP]
 
         pacActions = gameState.getLegalActions(0)
@@ -257,8 +251,68 @@ class AlphaBetaAgent(MultiAgentSearchAgent):
         """
           Returns the minimax action using self.depth and self.evaluationFunction
         """
-        "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+        return self.maxPac(gameState, self.depth, -float('inf'), float('inf'))[1]
+
+    def maxPac(self, gameState, depth, alpha, beta):
+
+        if depth < 1 or gameState.isWin() or gameState.isLose():
+            return [self.evaluationFunction(gameState), Directions.STOP]
+
+        pacActions = gameState.getLegalActions(0)
+
+        if not pacActions:
+            return [self.evaluationFunction(gameState), Directions.STOP]
+
+        bestAction = None
+
+        for pacMove in pacActions:
+
+            successorGameState = gameState.generateSuccessor(0, pacMove)
+
+            numGhosts = successorGameState.getNumAgents() - 1
+            ghostScore = self.minGhost(
+                successorGameState, 1, numGhosts, depth, alpha, beta)[0]
+
+            if ghostScore > alpha:
+                alpha = ghostScore
+                bestAction = pacMove
+                # print("a", alpha)
+
+        return [alpha, bestAction]
+
+    def minGhost(self, gameState, currentGhost, numGhosts, depth, alpha, beta):
+
+        if gameState.isWin() or gameState.isLose():
+            return [self.evaluationFunction(gameState), Directions.STOP]
+
+        if currentGhost > numGhosts:
+            if depth > 0:
+                return self.maxPac(gameState, depth - 1, alpha, beta)
+            else:
+                return [self.evaluationFunction(gameState), Directions.STOP]
+
+        ghostActions = gameState.getLegalActions(currentGhost)
+
+        if not ghostActions:
+            return [self.evaluationFunction(gameState), Directions.STOP]
+
+        bestAction = None
+
+        for ghostMove in ghostActions:
+            ghostGameState = gameState.generateSuccessor(
+                currentGhost, ghostMove)
+            ghostScore = self.minGhost(
+                ghostGameState, currentGhost + 1, numGhosts,  depth, alpha, beta)[0]
+
+            if ghostScore < beta:
+                beta = ghostScore
+                bestAction = ghostMove
+                # print("b", beta)
+
+            if alpha > beta:
+                break
+
+        return [beta, bestAction]
 
 
 class ExpectimaxAgent(MultiAgentSearchAgent):
@@ -281,7 +335,7 @@ def betterEvaluationFunction(currentGameState):
       Your extreme ghost-hunting, pellet-nabbing, food-gobbling, unstoppable
       evaluation function (question 5).
 
-     DESCRIPTION: Try to not go into positions which can lead to dying to a ghost.
+    DESCRIPTION: Try to not go into positions which can lead to dying to a ghost.
     """
 
     numFood = currentGameState.getNumFood()

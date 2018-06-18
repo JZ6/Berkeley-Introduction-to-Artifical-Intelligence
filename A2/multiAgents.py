@@ -265,6 +265,8 @@ class AlphaBetaAgent(MultiAgentSearchAgent):
 
         bestAction = None
 
+        maxScore = -float('inf')
+
         for pacMove in pacActions:
 
             successorGameState = gameState.generateSuccessor(0, pacMove)
@@ -273,17 +275,15 @@ class AlphaBetaAgent(MultiAgentSearchAgent):
             ghostScore = self.minGhost(
                 successorGameState, 1, numGhosts, depth, alpha, beta)[0]
 
-            # if beta < alpha:
-            #     print(alpha, beta)
-            #     return [beta, bestAction]
+            if ghostScore > maxScore:
+                maxScore = ghostScore
+                bestAction = pacMove
 
-            if ghostScore > beta:
+            if maxScore >= beta:
                 break
 
-            if ghostScore > alpha:
-                alpha = ghostScore
-                bestAction = pacMove
-                # print("a", alpha)
+            alpha = max(alpha, maxScore)
+            # print("a", alpha)
 
         return [alpha, bestAction]
 
@@ -304,6 +304,7 @@ class AlphaBetaAgent(MultiAgentSearchAgent):
             return [self.evaluationFunction(gameState), Directions.STOP]
 
         bestAction = None
+        minScore = float('inf')
 
         for ghostMove in ghostActions:
             ghostGameState = gameState.generateSuccessor(
@@ -311,14 +312,13 @@ class AlphaBetaAgent(MultiAgentSearchAgent):
             ghostScore = self.minGhost(
                 ghostGameState, currentGhost + 1, numGhosts,  depth, alpha, beta)[0]
 
-            if ghostScore < beta:
-                beta = ghostScore
-                bestAction = ghostMove
-                # print("b", beta)
+            if ghostScore < minScore:
+                minScore = ghostScore
 
-            if beta < alpha:
-                print(alpha, beta)
-                return [beta, bestAction]
+            if minScore <= alpha:
+                break
+
+            beta = min(beta, minScore)
 
         return [beta, bestAction]
 

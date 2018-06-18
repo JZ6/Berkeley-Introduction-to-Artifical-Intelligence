@@ -251,10 +251,12 @@ class AlphaBetaAgent(MultiAgentSearchAgent):
         """
           Returns the minimax action using self.depth and self.evaluationFunction
         """
+	#Set alpha and beta
         alpha = -float('inf')
 	beta = float('inf')
     	return self.chooseMove(gameState, alpha, beta, self.depth, 0)[1]
     def chooseMove(self, gameState, alpha, beta, depth, gameAgent):
+	#If we have reached depth or the game is over	
 	if depth < 1 or gameState.isWin() or gameState.isLose():
 		return [self.evaluationFunction(gameState), Directions.STOP]
 	if gameAgent == 0:

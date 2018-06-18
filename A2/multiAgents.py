@@ -273,6 +273,9 @@ class AlphaBetaAgent(MultiAgentSearchAgent):
             ghostScore = self.minGhost(
                 successorGameState, 1, numGhosts, depth, alpha, beta)[0]
 
+            if beta < ghostScore:
+                return [alpha, bestAction]
+
             if ghostScore > alpha:
                 alpha = ghostScore
                 bestAction = pacMove
@@ -304,13 +307,13 @@ class AlphaBetaAgent(MultiAgentSearchAgent):
             ghostScore = self.minGhost(
                 ghostGameState, currentGhost + 1, numGhosts,  depth, alpha, beta)[0]
 
+            if alpha > ghostScore:
+                return [beta, bestAction]
+
             if ghostScore < beta:
                 beta = ghostScore
                 bestAction = ghostMove
                 # print("b", beta)
-
-            if alpha > beta:
-                break
 
         return [beta, bestAction]
 

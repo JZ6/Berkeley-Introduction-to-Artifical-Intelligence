@@ -231,7 +231,8 @@ class ExactInference(InferenceModule):
         ghost, given its previous position (oldPos) as well as
         Pacman's current position, use this line of code:
 
-          newPosDist = self.getPositionDistribution(self.setGhostPosition(gameState, oldPos))
+          newPosDist = self.getPositionDistribution(
+              self.setGhostPosition(gameState, oldPos))
 
         newPosDist is a util.Counter object, where for each position p in
         self.legalPositions,
@@ -279,9 +280,25 @@ class ExactInference(InferenceModule):
         particular position.
 
         """
-        "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
-        "*** END YOUR CODE HERE ***"
+
+        # print(self.beliefs, self.getPositionDistribution(
+        #     self.setGhostPosition(gameState, [0, 0])))
+
+        timeStepBelief = util.Counter()
+
+        for oldPosition, distribution in self.beliefs.items():
+
+            # print(oldPosition, distribution)
+
+            newPosDist = self.getPositionDistribution(
+                self.setGhostPosition(gameState, oldPosition))
+
+            for newPos, prob in newPosDist.items():
+                timeStepBelief[newPos] += distribution * prob
+                # print(newPos, prob)
+
+        timeStepBelief.normalize()
+        self.beliefs = timeStepBelief
 
     def getBeliefDistribution(self):
         return self.beliefs
@@ -358,7 +375,8 @@ class ParticleFilter(InferenceModule):
 
         As in the elapseTime method of ExactInference, you should use:
 
-          newPosDist = self.getPositionDistribution(self.setGhostPosition(gameState, oldPos))
+          newPosDist = self.getPositionDistribution(
+              self.setGhostPosition(gameState, oldPos))
 
         to obtain the distribution over new positions for the ghost, given its
         previous position (oldPos) as well as Pacman's current position.
@@ -550,7 +568,8 @@ class JointParticleFilter:
         this line of code:
 
           newPosDist = getPositionDistributionForGhost(
-             setGhostPositions(gameState, prevGhostPositions), i, self.ghostAgents[i]
+             setGhostPositions(
+                 gameState, prevGhostPositions), i, self.ghostAgents[i]
           )
 
         Note that you may need to replace `prevGhostPositions` with the correct

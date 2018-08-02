@@ -194,13 +194,15 @@ class GreedyBustersAgent(BustersAgent):
 
         bestDistance = float('inf')
         resultAction = legal[0]
+
         for pacAction in legal:
             # print(pacAction)
             successorPosition = Actions.getSuccessor(pacmanPosition, pacAction)
             successorDis = self.distancer.getDistance(
                 closestGhost, successorPosition)
+
             if bestDistance > successorDis:
                 bestDistance = successorDis
-            resultAction = pacAction
+                resultAction = pacAction
 
         return resultAction

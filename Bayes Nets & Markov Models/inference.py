@@ -509,8 +509,6 @@ class JointParticleFilter:
                     stillGoing = False
                     break
 
-        "*** END YOUR CODE HERE ***"
-
     def addGhostAgent(self, agent):
         """
         Each ghost agent is registered separately and stored (in case they are
@@ -576,7 +574,6 @@ class JointParticleFilter:
         emissionModels = [busters.getObservationDistribution(
             dist) for dist in noisyDistances]
 
-        "*** YOUR CODE HERE ***"
         positionBeliefDistributions = util.Counter()
         # Compute the weight of each particle -> product of the probabilities associated with each ghost's noisyDistance
         for i in range(self.numParticles):
@@ -622,8 +619,6 @@ class JointParticleFilter:
                     newParticle = self.getParticleWithGhostInJail(
                         self.partsList[i], i1)
                     self.partsList[i] = newParticle
-
-        "*** END YOUR CODE HERE ***"
 
     def getParticleWithGhostInJail(self, particle, ghostIndex):
         """
@@ -695,13 +690,11 @@ class JointParticleFilter:
         self.partsList = newParticles
 
     def getBeliefDistribution(self):
-        "*** YOUR CODE HERE ***"
         beliefDist = util.Counter()
         for part in self.partsList:
             beliefDist[part] += 1
         beliefDist.normalize()
         return beliefDist
-        "*** END YOUR CODE HERE ***"
 
 
 # One JointInference module is shared globally across instances of MarginalInference

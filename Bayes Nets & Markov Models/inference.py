@@ -376,7 +376,6 @@ class ParticleFilter(InferenceModule):
             if emissionModel[trueDistance] > 0:
                 allPossible[p] = self.getBeliefDistribution()[p]
                 allPossible[p] *= emissionModel[trueDistance]
-                # go through legal positions to figure out if all particles re zero prob
                 total += allPossible[p]
 
         if total == 0:
@@ -403,10 +402,12 @@ class ParticleFilter(InferenceModule):
         util.sample(Counter object) is a helper method to generate a sample from
         a belief distribution.
         """
-        for partNum, oldPosition in enumerate(self.partsList):
+        newParts = []
+        for oldPosition in self.partsList:
             newPosDist = self.getPositionDistribution(
                 self.setGhostPosition(gameState, oldPosition))
-            self.partsList[partNum] = util.sample(newPosDist)
+            newParts.append(util.sample(newPosDist))
+        self.partsList = newParts
 
     def getBeliefDistribution(self):
         """
@@ -493,7 +494,20 @@ class JointParticleFilter:
         Storing your particles as a Counter (where there could be an associated
         weight with each position) is incorrect and may produce errors.
         """
-        "*** YOUR CODE HERE ***"
+        self.partsList = []
+        # Use itertools.product to get the permutations of all the legal positions for the ghosts
+        possibleGhostPositions = list(itertools.product(
+            self.legalPositions, repeat=self.numGhosts))
+        random.shuffle(possibleGhostPositions)
+        # insert numParticle Particles into self.partsList
+        stillGoing = True
+        while(stillGoing):
+            for i in range(len(possibleGhostPositions)):
+                if len(self.partsList) < self.numParticles:
+                    self.partsList.append(possibleGhostPositions[i])
+                else:
+                    stillGoing = False
+                    break
 
         "*** END YOUR CODE HERE ***"
 
@@ -558,10 +572,56 @@ class JointParticleFilter:
         noisyDistances = gameState.getNoisyGhostDistances()
         if len(noisyDistances) < self.numGhosts:
             return
+            # The emissionModel stores the probability of the noisyDistance for any true distance you supply
         emissionModels = [busters.getObservationDistribution(
             dist) for dist in noisyDistances]
 
         "*** YOUR CODE HERE ***"
+        positionBeliefDistributions = util.Counter()
+        # Compute the weight of each particle -> product of the probabilities associated with each ghost's noisyDistance
+        for i in range(self.numParticles):
+            newWeight = 1
+            for i1 in range(self.numGhosts):
+                if(noisyDistances[i1] != None):
+                    # This ghost isn't caputured, include it in weight calculation
+                    # Determine the probability of the ghosts noisyDistance
+                    probability = emissionModels[i1][util.manhattanDistance(
+                        pacmanPosition, self.partsList[i][i1])]
+                    # Get the product of the noisyDistance
+                    newWeight *= probability
+            positionBeliefDistributions[self.partsList[i]] += newWeight
+        # Special Case 1: All particles get weight 0
+        zero = False
+        for part in self.partsList:
+            if(positionBeliefDistributions[part] != 0):
+                zero = True
+                break
+        if(not zero):
+            # All weights are zero
+            self.initializeParticles()
+        else:
+            # Resample
+            # Normalize
+            positionBeliefDistributions.normalize()
+            # Select randomly from resulting distribution
+            count = 0
+            newParticles = []
+            while(True):
+                if(len(newParticles) < self.numParticles):
+                    newParticles.append(util.sample(
+                        positionBeliefDistributions))
+                else:
+                    break
+            self.partsList = newParticles
+
+        # Check for special case 2
+        for i1 in range(self.numGhosts):
+            if(noisyDistances[i1] == None):
+                for i in range(self.numParticles):
+                    # Sepcial Case 2: A ghost has been captured
+                    newParticle = self.getParticleWithGhostInJail(
+                        self.partsList[i], i1)
+                    self.partsList[i] = newParticle
 
         "*** END YOUR CODE HERE ***"
 
@@ -620,19 +680,27 @@ class JointParticleFilter:
               agents are always the same.
         """
         newParticles = []
-        for oldParticle in self.particles:
+        for oldParticle in self.partsList:
             newParticle = list(oldParticle)  # A list of ghost positions
             # now loop through and update each entry in newParticle...
-
-            "*** YOUR CODE HERE ***"
-
-            "*** END YOUR CODE HERE ***"
+            # Go through all the ghosts
+            for i in range(self.numGhosts):
+                newPosDist = getPositionDistributionForGhost(
+                    setGhostPositions(gameState, newParticle), i, self.ghostAgents[i])
+                # take a sample
+                newGhostPos = util.sample(newPosDist)
+                # replace the position in the new particle
+                newParticle[i] = newGhostPos
             newParticles.append(tuple(newParticle))
-        self.particles = newParticles
+        self.partsList = newParticles
 
     def getBeliefDistribution(self):
         "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+        beliefDist = util.Counter()
+        for part in self.partsList:
+            beliefDist[part] += 1
+        beliefDist.normalize()
+        return beliefDist
         "*** END YOUR CODE HERE ***"
 
 
